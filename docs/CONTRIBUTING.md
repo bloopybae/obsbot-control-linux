@@ -1,4 +1,4 @@
-# Contributing to OBSBOT Meet 2 Control
+# Contributing to OBSBOT Control
 
 ## Adding New Camera Controls
 
@@ -177,7 +177,7 @@ state.yourNewControl = m_settingsWidget->getYourControl();
 
 ### 5. Update CLI (Optional)
 
-**File:** `src/cli/meet2_test.cpp`
+**File:** `src/cli/camera_cli.cpp`
 
 Add to `applyConfigToCamera()`:
 ```cpp
@@ -188,7 +188,7 @@ ret = dev->cameraSetYourControlR(settings.yourNewControl);
 ### 6. Test
 
 1. Build: `cmake --build build -j$(nproc)`
-2. Run GUI: `./build/obsbot-meet2-gui`
+2. Run GUI: `./build/obsbot-gui`
 3. Test control works
 4. Test config save/load
 5. Test with invalid config values

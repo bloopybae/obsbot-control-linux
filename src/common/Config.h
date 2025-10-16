@@ -6,11 +6,11 @@
 #include <vector>
 
 /**
- * @brief Configuration manager for OBSBOT Meet 2 settings
+ * @brief Configuration manager for OBSBOT camera settings
  *
  * Reads and writes XDG-compliant config files with validation.
  * Format: Simple key=value pairs with # comments
- * Location: $XDG_CONFIG_HOME/obsbot-meet2-control/settings.conf
+ * Location: $XDG_CONFIG_HOME/obsbot-control/settings.conf
  */
 class Config
 {

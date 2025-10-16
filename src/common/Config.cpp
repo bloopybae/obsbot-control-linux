@@ -57,7 +57,7 @@ std::string Config::getXdgConfigHome() const
 
 std::string Config::getConfigPath() const
 {
-    return getXdgConfigHome() + "/obsbot-meet2-control/settings.conf";
+    return getXdgConfigHome() + "/obsbot-control/settings.conf";
 }
 
 bool Config::configExists() const
@@ -408,7 +408,7 @@ bool Config::save()
         return false;
     }
 
-    file << "# OBSBOT Meet 2 Control Configuration\n";
+    file << "# OBSBOT Control Configuration\n";
     file << "# Auto-generated settings file\n";
     file << "#\n";
     file << "# Boolean values: true/false or enabled/disabled\n";

@@ -1,4 +1,4 @@
-# OBSBOT Meet 2 Control - Roadmap
+# OBSBOT Control - Roadmap
 
 ## Current Status
 

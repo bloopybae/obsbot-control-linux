@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# OBSBOT Meet 2 Control - Uninstall Script
+# OBSBOT Control - Uninstall Script
 # Safely removes installed files without touching system configuration
 
 set -e
@@ -26,7 +26,7 @@ fi
 INSTALL_DIR="${XDG_BIN_HOME:-$HOME/.local/bin}"
 DESKTOP_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
 ICON_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/icons/hicolor/scalable/apps"
-CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/obsbot-meet2-control"
+CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/obsbot-control"
 
 # Print colored message
 print_msg() {
@@ -37,17 +37,17 @@ print_msg() {
 
 # Show usage information
 show_usage() {
-    echo -e "${GREEN}OBSBOT Meet 2 Control - Uninstall Script${NC}"
+    echo -e "${GREEN}OBSBOT Control - Uninstall Script${NC}"
     echo -e ""
     echo -e "${YELLOW}Usage:${NC}"
     echo -e "  ./uninstall.sh [--confirm]"
     echo -e ""
     echo -e "${YELLOW}What it does:${NC}"
-    echo -e "  Removes OBSBOT Meet 2 Control files from your system:"
-    echo -e "  - ${BLUE}$INSTALL_DIR/obsbot-meet2-gui${NC}"
-    echo -e "  - ${BLUE}$INSTALL_DIR/obsbot-meet2-cli${NC}"
-    echo -e "  - ${BLUE}$DESKTOP_DIR/obsbot-meet2-control.desktop${NC}"
-    echo -e "  - ${BLUE}$ICON_DIR/obsbot-meet2-control.svg${NC}"
+    echo -e "  Removes OBSBOT Control files from your system:"
+    echo -e "  - ${BLUE}$INSTALL_DIR/obsbot-gui${NC}"
+    echo -e "  - ${BLUE}$INSTALL_DIR/obsbot-cli${NC}"
+    echo -e "  - ${BLUE}$DESKTOP_DIR/obsbot-control.desktop${NC}"
+    echo -e "  - ${BLUE}$ICON_DIR/obsbot-control.svg${NC}"
     echo -e "  - ${BLUE}$CONFIG_DIR/settings.conf${NC}"
     echo -e "  - ${BLUE}$CONFIG_DIR/${NC} (if empty after removing config file)"
     echo -e ""
@@ -88,35 +88,35 @@ remove_file() {
 
 # Perform uninstallation
 do_uninstall() {
-    print_msg "$GREEN" "🗑️  Uninstalling OBSBOT Meet 2 Control..."
+    print_msg "$GREEN" "🗑️  Uninstalling OBSBOT Control..."
     echo ""
 
     local removed=0
     local not_found=0
 
     # Remove GUI binary
-    if remove_file "$INSTALL_DIR/obsbot-meet2-gui" "GUI application"; then
+    if remove_file "$INSTALL_DIR/obsbot-gui" "GUI application"; then
         removed=$((removed + 1))
     else
         not_found=$((not_found + 1))
     fi
 
     # Remove CLI binary
-    if remove_file "$INSTALL_DIR/obsbot-meet2-cli" "CLI tool"; then
+    if remove_file "$INSTALL_DIR/obsbot-cli" "CLI tool"; then
         removed=$((removed + 1))
     else
         not_found=$((not_found + 1))
     fi
 
     # Remove desktop launcher
-    if remove_file "$DESKTOP_DIR/obsbot-meet2-control.desktop" "Desktop launcher"; then
+    if remove_file "$DESKTOP_DIR/obsbot-control.desktop" "Desktop launcher"; then
         removed=$((removed + 1))
     else
         not_found=$((not_found + 1))
     fi
 
     # Remove icon
-    if remove_file "$ICON_DIR/obsbot-meet2-control.svg" "Application icon"; then
+    if remove_file "$ICON_DIR/obsbot-control.svg" "Application icon"; then
         removed=$((removed + 1))
     else
         not_found=$((not_found + 1))
@@ -145,7 +145,7 @@ do_uninstall() {
     fi
 
     # Update desktop database if available
-    if [ -f "$DESKTOP_DIR/obsbot-meet2-control.desktop" ] || command -v update-desktop-database &> /dev/null; then
+    if [ -f "$DESKTOP_DIR/obsbot-control.desktop" ] || command -v update-desktop-database &> /dev/null; then
         print_msg "$BLUE" "\nUpdating desktop database..."
         update-desktop-database "$DESKTOP_DIR" 2>/dev/null || true
     fi
@@ -162,7 +162,7 @@ do_uninstall() {
         print_msg "$GREEN" "✓ Uninstall complete!"
     else
         print_msg "$YELLOW" "⚠️  No files were found to remove."
-        print_msg "$BLUE" "   (OBSBOT Meet 2 Control may not have been installed)"
+        print_msg "$BLUE" "   (OBSBOT Control may not have been installed)"
     fi
 
     echo ""
@@ -185,10 +185,10 @@ main() {
         local found=0
 
         files=(
-            "$INSTALL_DIR/obsbot-meet2-gui:GUI application"
-            "$INSTALL_DIR/obsbot-meet2-cli:CLI tool"
-            "$DESKTOP_DIR/obsbot-meet2-control.desktop:Desktop launcher"
-            "$ICON_DIR/obsbot-meet2-control.svg:Application icon"
+            "$INSTALL_DIR/obsbot-gui:GUI application"
+            "$INSTALL_DIR/obsbot-cli:CLI tool"
+            "$DESKTOP_DIR/obsbot-control.desktop:Desktop launcher"
+            "$ICON_DIR/obsbot-control.svg:Application icon"
             "$CONFIG_DIR/settings.conf:Configuration file"
         )
 

@@ -1,13 +1,13 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=OBSBOT Meet 2 Control
+Name=OBSBOT Control
 GenericName=Camera Control
-Comment=Control OBSBOT Meet 2 camera settings and preview
-Exec=obsbot-meet2-gui
-Icon=obsbot-meet2-control
+Comment=Control OBSBOT camera settings and preview
+Exec=obsbot-gui
+Icon=obsbot-control
 Terminal=false
 Categories=AudioVideo;Video;
 Keywords=camera;obsbot;webcam;video;ptz;streaming;
 StartupNotify=true
-StartupWMClass=obsbot-meet2-gui
+StartupWMClass=obsbot-gui

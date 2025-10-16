@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# OBSBOT Meet 2 Control - Build and Install Script
+# OBSBOT Control - Build and Install Script
 # This script helps you build and optionally install the application
 
 set -e
@@ -27,7 +27,7 @@ INSTALL_DIR="${XDG_BIN_HOME:-$HOME/.local/bin}"
 DESKTOP_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
 ICON_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/icons/hicolor/scalable/apps"
 BUILD_DIR="build"
-PROJECT_NAME="obsbot-meet2"
+PROJECT_NAME="obsbot"
 
 # Print colored message
 print_msg() {
@@ -38,7 +38,7 @@ print_msg() {
 
 # Show usage information
 show_usage() {
-    echo -e "${GREEN}OBSBOT Meet 2 Control - Build Script${NC}"
+    echo -e "${GREEN}OBSBOT Control - Build Script${NC}"
     echo -e ""
     echo -e "${YELLOW}Usage:${NC}"
     echo -e "  ./build.sh <command> [--confirm]"
@@ -51,7 +51,7 @@ show_usage() {
     echo -e "    - Creates build/ directory if it doesn't exist"
     echo -e "    - Runs CMake to configure the project"
     echo -e "    - Compiles both GUI and CLI applications"
-    echo -e "    - Binaries will be in build/obsbot-meet2-gui and build/obsbot-meet2-cli"
+    echo -e "    - Binaries will be in build/obsbot-gui and build/obsbot-cli"
     echo -e ""
     echo -e "    ${YELLOW}Example:${NC} ./build.sh build --confirm"
     echo -e ""
@@ -157,7 +157,7 @@ offer_path_update() {
 
             # Add PATH export
             echo "" >> "$shell_config"
-            echo "# Added by OBSBOT Meet 2 Control install script" >> "$shell_config"
+            echo "# Added by OBSBOT Control install script" >> "$shell_config"
             echo "export PATH=\"\$HOME/.local/bin:\$PATH\"" >> "$shell_config"
 
             print_msg "$GREEN" "✓ Added to $shell_config"
@@ -370,7 +370,7 @@ do_build() {
     fi
 
     echo ""
-    print_msg "$GREEN" "🔨 Building OBSBOT Meet 2 Control..."
+    print_msg "$GREEN" "🔨 Building OBSBOT Control..."
 
     # Create build directory
     if [ ! -d "$BUILD_DIR" ]; then
@@ -390,8 +390,8 @@ do_build() {
 
     print_msg "$GREEN" "✓ Build complete!"
     print_msg "$NC" "\nBinaries are in:"
-    print_msg "$BLUE" "  - $BUILD_DIR/obsbot-meet2-gui (GUI application)"
-    print_msg "$BLUE" "  - $BUILD_DIR/obsbot-meet2-cli (CLI tool)"
+    print_msg "$BLUE" "  - $BUILD_DIR/obsbot-gui (GUI application)"
+    print_msg "$BLUE" "  - $BUILD_DIR/obsbot-cli (CLI tool)"
 }
 
 # Install the project
@@ -410,10 +410,10 @@ do_install() {
 
     # Copy GUI binary (always installed)
     print_msg "$BLUE" "Installing GUI application..."
-    cp "$BUILD_DIR/obsbot-meet2-gui" "$INSTALL_DIR/"
-    chmod +x "$INSTALL_DIR/obsbot-meet2-gui"
+    cp "$BUILD_DIR/obsbot-gui" "$INSTALL_DIR/"
+    chmod +x "$INSTALL_DIR/obsbot-gui"
 
-    local installed_apps="  - obsbot-meet2-gui"
+    local installed_apps="  - obsbot-gui"
 
     # Ask about CLI installation
     echo ""
@@ -422,9 +422,9 @@ do_install() {
 
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         print_msg "$BLUE" "Installing CLI tool..."
-        cp "$BUILD_DIR/obsbot-meet2-cli" "$INSTALL_DIR/"
-        chmod +x "$INSTALL_DIR/obsbot-meet2-cli"
-        installed_apps="$installed_apps\n  - obsbot-meet2-cli"
+        cp "$BUILD_DIR/obsbot-cli" "$INSTALL_DIR/"
+        chmod +x "$INSTALL_DIR/obsbot-cli"
+        installed_apps="$installed_apps\n  - obsbot-cli"
     else
         print_msg "$YELLOW" "Skipping CLI installation."
     fi
@@ -436,11 +436,11 @@ do_install() {
     mkdir -p "$ICON_DIR"
 
     # Create desktop file with full path to executable
-    sed "s|Exec=obsbot-meet2-gui|Exec=$INSTALL_DIR/obsbot-meet2-gui|g" \
-        "obsbot-meet2-control.desktop" > "$DESKTOP_DIR/obsbot-meet2-control.desktop"
-    chmod +x "$DESKTOP_DIR/obsbot-meet2-control.desktop"
+    sed "s|Exec=obsbot-gui|Exec=$INSTALL_DIR/obsbot-gui|g" \
+        "obsbot-control.desktop" > "$DESKTOP_DIR/obsbot-control.desktop"
+    chmod +x "$DESKTOP_DIR/obsbot-control.desktop"
 
-    cp "resources/icons/camera.svg" "$ICON_DIR/obsbot-meet2-control.svg"
+    cp "resources/icons/camera.svg" "$ICON_DIR/obsbot-control.svg"
 
     # Update desktop database if available
     if command -v update-desktop-database &> /dev/null; then
@@ -458,7 +458,7 @@ do_install() {
     else
         print_msg "$GREEN" "\n✓ $INSTALL_DIR is already in your PATH"
         print_msg "$NC" "You can run the applications from anywhere:"
-        print_msg "$BLUE" "  obsbot-meet2-gui"
+        print_msg "$BLUE" "  obsbot-gui"
     fi
 }
 

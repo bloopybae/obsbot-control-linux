@@ -55,7 +55,7 @@ void CameraPreviewWidget::startPreview()
         return;
     }
 
-    // Find OBSBOT Meet 2 camera
+    // Find OBSBOT camera
     const QList<QCameraDevice> cameras = QMediaDevices::videoInputs();
     QCameraDevice selectedCamera;
 

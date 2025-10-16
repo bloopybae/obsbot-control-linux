@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# OBSBOT Meet 2 Control - Quick Installer
+# OBSBOT Control - Quick Installer
 #
 # This script clones the repository and runs the automated build/install process.
 # It will check dependencies and show what needs to be installed if anything is missing.
@@ -30,7 +30,7 @@ print_msg() {
 }
 
 print_msg "$GREEN" "═══════════════════════════════════════════════════════"
-print_msg "$GREEN" "  OBSBOT Meet 2 Control - Quick Installer"
+print_msg "$GREEN" "  OBSBOT Control - Quick Installer"
 print_msg "$GREEN" "═══════════════════════════════════════════════════════"
 echo ""
 
@@ -101,7 +101,7 @@ if ./build.sh install --confirm; then
     echo ""
     print_msg "$BLUE" "The application should now appear in your system menu."
     print_msg "$NC" "Or run from terminal:"
-    print_msg "$GREEN" "  obsbot-meet2-gui"
+    print_msg "$GREEN" "  obsbot-gui"
     echo ""
     print_msg "$BLUE" "Repository location: $PROJECT_DIR"
     echo ""

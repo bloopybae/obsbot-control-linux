@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(obsbot-meet2-control)
+project(obsbot-control)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -16,7 +16,7 @@ set(SDK_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/sdk/include)
 set(SDK_LIB_DIR ${CMAKE_SOURCE_DIR}/sdk/lib)
 
 # GUI Application
-add_executable(obsbot-meet2-gui
+add_executable(obsbot-gui
     src/gui/main.cpp
     src/gui/MainWindow.cpp
     src/gui/MainWindow.h
@@ -35,16 +35,16 @@ add_executable(obsbot-meet2-gui
     resources/resources.qrc
 )
 
-target_include_directories(obsbot-meet2-gui PRIVATE
+target_include_directories(obsbot-gui PRIVATE
     ${SDK_INCLUDE_DIR}
     ${CMAKE_SOURCE_DIR}/src/common
 )
 
-target_link_directories(obsbot-meet2-gui PRIVATE
+target_link_directories(obsbot-gui PRIVATE
     ${SDK_LIB_DIR}
 )
 
-target_link_libraries(obsbot-meet2-gui PRIVATE
+target_link_libraries(obsbot-gui PRIVATE
     Qt6::Widgets
     Qt6::Multimedia
     Qt6::MultimediaWidgets
@@ -52,32 +52,32 @@ target_link_libraries(obsbot-meet2-gui PRIVATE
 )
 
 # CLI Application
-add_executable(obsbot-meet2-cli
+add_executable(obsbot-cli
     src/cli/meet2_test.cpp
     src/common/Config.cpp
     src/common/Config.h
 )
 
-target_include_directories(obsbot-meet2-cli PRIVATE
+target_include_directories(obsbot-cli PRIVATE
     ${SDK_INCLUDE_DIR}
     ${CMAKE_SOURCE_DIR}/src/common
 )
 
-target_link_directories(obsbot-meet2-cli PRIVATE
+target_link_directories(obsbot-cli PRIVATE
     ${SDK_LIB_DIR}
 )
 
-target_link_libraries(obsbot-meet2-cli PRIVATE
+target_link_libraries(obsbot-cli PRIVATE
     dev
 )
 
 # Set RPATH for finding libdev.so
-set_target_properties(obsbot-meet2-gui PROPERTIES
+set_target_properties(obsbot-gui PROPERTIES
     BUILD_RPATH "${SDK_LIB_DIR}"
     INSTALL_RPATH "${SDK_LIB_DIR}"
 )
 
-set_target_properties(obsbot-meet2-cli PROPERTIES
+set_target_properties(obsbot-cli PROPERTIES
     BUILD_RPATH "${SDK_LIB_DIR}"
     INSTALL_RPATH "${SDK_LIB_DIR}"
 )

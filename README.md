@@ -1,6 +1,9 @@
-# OBSBOT Meet 2 Control for Linux
+# OBSBOT Control for Linux
 
-A native Qt6 application for controlling OBSBOT Meet 2 cameras on Linux. Provides full camera control with an intuitive GUI while allowing simultaneous use with streaming/conferencing software.
+A native Qt6 application for controlling OBSBOT cameras on Linux. Provides full camera control with an intuitive GUI while allowing simultaneous use with streaming/conferencing software.
+
+**Primary testing**: OBSBOT Meet 2
+**Also works with**: OBSBOT Tiny 4K (partial feature support - see [Compatibility](#compatibility))
 
 ## Screenshots
 
@@ -42,18 +45,46 @@ A native Qt6 application for controlling OBSBOT Meet 2 cameras on Linux. Provide
 
 ## Why This Matters
 
-The OBSBOT Meet 2 has excellent Linux UVC support, but lacks native control software. This application:
+OBSBOT cameras have excellent Linux UVC support, but lack native control software. This application:
 
 1. **Simultaneous Use** - Control camera settings while OBS/Chrome streams video
 2. **Resource Friendly** - Releases camera when minimized/hidden
 3. **Native Performance** - Qt6 application, not Electron
 4. **Standard Compliance** - Uses XDG config directories, system tray
 
+## Compatibility
+
+This application was developed and tested primarily with the **OBSBOT Meet 2**, but has been reported to work with other OBSBOT models with varying feature support.
+
+### OBSBOT Meet 2 ✅
+- **Fully tested** - All features supported
+- PTZ controls, Auto-Framing, HDR, Face AE/Focus, all image controls
+
+### OBSBOT Tiny 4K ⚠️
+**What works:**
+- ✅ PTZ controls (Pan, Tilt, Zoom)
+- ✅ HDR
+- ✅ Manual image controls (Brightness, Contrast, Saturation)
+- ✅ White Balance
+
+**What doesn't work:**
+- ❌ Auto-Framing (can be enabled via camera gestures, but not from app)
+- ❌ Face-based Auto Exposure
+- ❌ Face-based Auto Focus (works via Cameractrl though)
+- ❌ Auto image controls
+
+*Tested and reported by: [samdark](https://github.com/aaronsb/obsbot-controls-qt-linux/issues/7)*
+
+### Other Models
+Other OBSBOT cameras may work with varying degrees of functionality. The SDK supports multiple product types (Tiny, Tiny 2, Tail Air, Me, etc.), but testing is needed.
+
+**Have another model?** Please [open an issue](https://github.com/aaronsb/obsbot-controls-qt-linux/issues) to report compatibility!
+
 ## Requirements
 
 ### System
 - Linux (tested on Arch Linux with KDE Plasma)
-- OBSBOT Meet 2 camera (USB connection)
+- OBSBOT camera (USB connection - see [Compatibility](#compatibility))
 - System tray support (KDE, GNOME, etc.)
 
 ### Build Dependencies
@@ -114,11 +145,11 @@ The build script automatically:
 ## Usage
 
 ### First Run
-1. Connect OBSBOT Meet 2 via USB
+1. Connect your OBSBOT camera via USB
 2. Launch application
 3. Camera connects automatically
 4. Adjust settings as desired
-5. Settings auto-save to `~/.config/obsbot-meet2-control/settings.conf`
+5. Settings auto-save to `~/.config/obsbot-control/settings.conf`
 
 ### Camera Preview
 - Click **"Show Camera Preview"** to enable live preview
@@ -136,7 +167,7 @@ The build script automatically:
 Perfect for streaming/conferencing:
 
 1. Start app (optionally minimized to tray)
-2. Open OBS and select OBSBOT Meet 2 as video source
+2. Open OBS and select your OBSBOT camera as video source
 3. Click tray icon to show control window
 4. Adjust zoom, framing, brightness during stream
 5. Hide window to tray when not needed
@@ -144,7 +175,7 @@ Perfect for streaming/conferencing:
 
 ## Configuration
 
-Settings are stored in: `~/.config/obsbot-meet2-control/settings.conf`
+Settings are stored in: `~/.config/obsbot-control/settings.conf`
 
 ### Configuration Format
 ```ini
@@ -226,7 +257,7 @@ When window is shown/restored:
 - Note: Controls work without preview!
 
 ### Settings not saving
-- Check config directory exists: `~/.config/obsbot-meet2-control/`
+- Check config directory exists: `~/.config/obsbot-control/`
 - Verify write permissions
 - Look for validation errors in config dialog
 
@@ -240,7 +271,7 @@ When window is shown/restored:
 A CLI tool is also included for automation/scripting:
 
 ```bash
-./obsbot-meet2-cli
+./obsbot-cli
 ```
 
 See CLI help for available commands.
@@ -267,7 +298,7 @@ This is a personal project but contributions are welcome:
 
 ## Credits
 
-- OBSBOT for the Meet 2 camera and SDK
+- OBSBOT for creating excellent Linux-compatible cameras and providing the SDK
 - Qt Project for the excellent framework
 - Linux community for V4L2 support
 

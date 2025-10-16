@@ -1,6 +1,6 @@
-# Building OBSBOT Meet 2 Control
+# Building OBSBOT Control
 
-Complete build instructions for compiling and installing OBSBOT Meet 2 Control on Linux.
+Complete build instructions for compiling and installing OBSBOT Control on Linux.
 
 ## Table of Contents
 
@@ -99,7 +99,7 @@ The `build.sh` script provides an easy, safe way to build and install the applic
 ./build.sh build --confirm
 ```
 
-Binaries will be in `build/obsbot-meet2-gui` and `build/obsbot-meet2-cli`
+Binaries will be in `build/obsbot-gui` and `build/obsbot-cli`
 
 #### Build and Install
 
@@ -130,9 +130,9 @@ During installation, you'll be prompted:
 
 ### What Gets Installed
 
-- **Binaries**: `~/.local/bin/obsbot-meet2-gui` (and optionally `obsbot-meet2-cli`)
-- **Desktop Launcher**: `~/.local/share/applications/obsbot-meet2-control.desktop`
-- **Icon**: `~/.local/share/icons/hicolor/scalable/apps/obsbot-meet2-control.svg`
+- **Binaries**: `~/.local/bin/obsbot-gui` (and optionally `obsbot-cli`)
+- **Desktop Launcher**: `~/.local/share/applications/obsbot-control.desktop`
+- **Icon**: `~/.local/share/icons/hicolor/scalable/apps/obsbot-control.svg`
 
 After installation, the application will appear in your system's application menu.
 
@@ -170,24 +170,24 @@ make -j$(nproc)
 
 ```bash
 # Run directly from build directory
-./obsbot-meet2-gui
+./obsbot-gui
 ```
 
 Or install manually:
 
 ```bash
 # Copy to local bin
-cp obsbot-meet2-gui ~/.local/bin/
-cp obsbot-meet2-cli ~/.local/bin/
+cp obsbot-gui ~/.local/bin/
+cp obsbot-cli ~/.local/bin/
 chmod +x ~/.local/bin/obsbot-meet2-{gui,cli}
 
 # Install desktop launcher
 mkdir -p ~/.local/share/applications
-cp ../obsbot-meet2-control.desktop ~/.local/share/applications/
+cp ../obsbot-control.desktop ~/.local/share/applications/
 
 # Install icon
 mkdir -p ~/.local/share/icons/hicolor/scalable/apps
-cp ../resources/icons/camera.svg ~/.local/share/icons/hicolor/scalable/apps/obsbot-meet2-control.svg
+cp ../resources/icons/camera.svg ~/.local/share/icons/hicolor/scalable/apps/obsbot-control.svg
 
 # Update desktop database
 update-desktop-database ~/.local/share/applications
@@ -268,11 +268,11 @@ The uninstall script removes:
 ### Manual Uninstallation
 
 ```bash
-rm -f ~/.local/bin/obsbot-meet2-gui
-rm -f ~/.local/bin/obsbot-meet2-cli
-rm -f ~/.local/share/applications/obsbot-meet2-control.desktop
-rm -f ~/.local/share/icons/hicolor/scalable/apps/obsbot-meet2-control.svg
-rm -rf ~/.config/obsbot-meet2-control
+rm -f ~/.local/bin/obsbot-gui
+rm -f ~/.local/bin/obsbot-cli
+rm -f ~/.local/share/applications/obsbot-control.desktop
+rm -f ~/.local/share/icons/hicolor/scalable/apps/obsbot-control.svg
+rm -rf ~/.config/obsbot-control
 update-desktop-database ~/.local/share/applications
 ```
 
@@ -325,19 +325,19 @@ g++ --version
 
 1. **Check if installed correctly**:
    ```bash
-   which obsbot-meet2-gui
-   ls -l ~/.local/bin/obsbot-meet2-gui
+   which obsbot-gui
+   ls -l ~/.local/bin/obsbot-gui
    ```
 
 2. **Try running from build directory**:
    ```bash
    cd build
-   ./obsbot-meet2-gui
+   ./obsbot-gui
    ```
 
 3. **Check for error messages**:
    ```bash
-   ./obsbot-meet2-gui 2>&1 | tee error.log
+   ./obsbot-gui 2>&1 | tee error.log
    ```
 
 #### Desktop launcher doesn't appear
@@ -349,18 +349,18 @@ g++ --version
 
 2. **Check desktop environment**:
    - Some minimal window managers don't support .desktop files
-   - Try running from terminal: `obsbot-meet2-gui`
+   - Try running from terminal: `obsbot-gui`
 
 3. **Verify installation**:
    ```bash
-   ls -l ~/.local/share/applications/obsbot-meet2-control.desktop
+   ls -l ~/.local/share/applications/obsbot-control.desktop
    ```
 
 #### Permission denied errors
 
 Ensure the binary is executable:
 ```bash
-chmod +x ~/.local/bin/obsbot-meet2-gui
+chmod +x ~/.local/bin/obsbot-gui
 ```
 
 ### Build Script Issues

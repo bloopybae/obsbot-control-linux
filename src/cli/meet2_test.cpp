@@ -22,19 +22,19 @@ int main(int argc, char **argv)
         if (strcmp(argv[i], "-i") == 0 || strcmp(argv[i], "--interactive") == 0) {
             interactive = true;
         } else if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) {
-            cout << "OBSBOT Meet 2 Control - CLI Tool" << endl;
+            cout << "OBSBOT Control - CLI Tool" << endl;
             cout << "\nUsage: " << argv[0] << " [options]" << endl;
             cout << "\nOptions:" << endl;
             cout << "  -i, --interactive    Run in interactive menu mode" << endl;
             cout << "  -h, --help           Show this help message" << endl;
             cout << "\nDefault behavior:" << endl;
-            cout << "  Loads configuration from ~/.config/obsbot-meet2-control/settings.conf" << endl;
+            cout << "  Loads configuration from ~/.config/obsbot-control/settings.conf" << endl;
             cout << "  Applies settings to camera and exits" << endl;
             return 0;
         }
     }
 
-    cout << "OBSBOT Meet 2 Control" << (interactive ? " - Interactive Mode" : "") << endl;
+    cout << "OBSBOT Control" << (interactive ? " - Interactive Mode" : "") << endl;
 
     // Load configuration
     Config config;
@@ -68,7 +68,7 @@ int main(int argc, char **argv)
     Devices::get().setEnableMdnsScan(false);  // USB only
 
     // Wait for device detection
-    cout << "Waiting for Meet 2 camera..." << endl;
+    cout << "Waiting for OBSBOT camera..." << endl;
     this_thread::sleep_for(chrono::seconds(3));
 
     auto dev_list = Devices::get().getDevList();
@@ -77,7 +77,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    // Get first device (should be Meet 2)
+    // Get first device
     auto dev = dev_list.front();
     cout << "\nFound device:" << endl;
     cout << "  Name: " << dev->devName() << endl;
@@ -85,8 +85,10 @@ int main(int argc, char **argv)
     cout << "  Version: " << dev->devVersion() << endl;
     cout << "  Product Type: " << dev->productType() << endl;
 
+    // Note: This app was primarily tested with Meet 2, but may work with other models
     if (dev->productType() != ObsbotProdMeet2) {
-        cout << "\nWarning: This is not a Meet 2 camera!" << endl;
+        cout << "\nNote: This camera is not a Meet 2." << endl;
+        cout << "      Some features may not work as expected." << endl;
     }
 
     if (interactive) {

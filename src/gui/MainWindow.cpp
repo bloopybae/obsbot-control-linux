@@ -20,7 +20,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_previewAspectRatio(16.0 / 9.0)  // Default to 16:9
     , m_previewStateBeforeMinimize(false)
 {
-    setWindowTitle("OBSBOT Meet 2 Control");
+    setWindowTitle("OBSBOT Control");
     setWindowIcon(QIcon(":/icons/camera.svg"));
 
     // Create controller
@@ -566,7 +566,7 @@ void MainWindow::setupTrayIcon()
     // Create system tray icon
     m_trayIcon = new QSystemTrayIcon(this);
     m_trayIcon->setIcon(QIcon(":/icons/camera.svg"));
-    m_trayIcon->setToolTip("OBSBOT Meet 2 Control");
+    m_trayIcon->setToolTip("OBSBOT Control");
 
     // Create context menu
     m_trayMenu = new QMenu(this);
@@ -662,7 +662,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
         static bool firstTime = true;
         if (firstTime) {
             m_trayIcon->showMessage(
-                "OBSBOT Meet 2 Control",
+                "OBSBOT Control",
                 "Application minimized to system tray. Click the tray icon to restore.",
                 QSystemTrayIcon::Information,
                 3000
