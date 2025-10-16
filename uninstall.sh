@@ -36,42 +36,40 @@ print_msg() {
 
 # Show usage information
 show_usage() {
-    cat << EOF
-${GREEN}OBSBOT Meet 2 Control - Uninstall Script${NC}
-
-${YELLOW}Usage:${NC}
-  ./uninstall.sh [--confirm]
-
-${YELLOW}What it does:${NC}
-  Removes OBSBOT Meet 2 Control files from your system:
-  - ${BLUE}$INSTALL_DIR/obsbot-meet2-gui${NC}
-  - ${BLUE}$INSTALL_DIR/obsbot-meet2-cli${NC}
-  - ${BLUE}$DESKTOP_DIR/obsbot-meet2-control.desktop${NC}
-  - ${BLUE}$ICON_DIR/obsbot-meet2-control.svg${NC}
-
-${YELLOW}What it does NOT do:${NC}
-  - Does not modify shell configuration files (.bashrc, .zshrc)
-  - Does not remove PATH statements
-  - Does not remove configuration files (~/.config/obsbot-meet2-control/)
-  - Only removes files we explicitly installed
-
-${YELLOW}Options:${NC}
-  ${BLUE}--confirm${NC}
-    Required flag to actually uninstall. Without this flag,
-    the script will only show what it would do.
-
-${YELLOW}Examples:${NC}
-  # See what will be removed (dry run)
-  ./uninstall.sh
-
-  # Actually remove installed files
-  ./uninstall.sh --confirm
-
-${YELLOW}Note:${NC}
-  If you want to remove configuration files as well, run:
-  ${BLUE}rm -rf ~/.config/obsbot-meet2-control/${NC}
-
-EOF
+    echo -e "${GREEN}OBSBOT Meet 2 Control - Uninstall Script${NC}"
+    echo -e ""
+    echo -e "${YELLOW}Usage:${NC}"
+    echo -e "  ./uninstall.sh [--confirm]"
+    echo -e ""
+    echo -e "${YELLOW}What it does:${NC}"
+    echo -e "  Removes OBSBOT Meet 2 Control files from your system:"
+    echo -e "  - ${BLUE}$INSTALL_DIR/obsbot-meet2-gui${NC}"
+    echo -e "  - ${BLUE}$INSTALL_DIR/obsbot-meet2-cli${NC}"
+    echo -e "  - ${BLUE}$DESKTOP_DIR/obsbot-meet2-control.desktop${NC}"
+    echo -e "  - ${BLUE}$ICON_DIR/obsbot-meet2-control.svg${NC}"
+    echo -e ""
+    echo -e "${YELLOW}What it does NOT do:${NC}"
+    echo -e "  - Does not modify shell configuration files (.bashrc, .zshrc)"
+    echo -e "  - Does not remove PATH statements"
+    echo -e "  - Does not remove configuration files (~/.config/obsbot-meet2-control/)"
+    echo -e "  - Only removes files we explicitly installed"
+    echo -e ""
+    echo -e "${YELLOW}Options:${NC}"
+    echo -e "  ${BLUE}--confirm${NC}"
+    echo -e "    Required flag to actually uninstall. Without this flag,"
+    echo -e "    the script will only show what it would do."
+    echo -e ""
+    echo -e "${YELLOW}Examples:${NC}"
+    echo -e "  # See what will be removed (dry run)"
+    echo -e "  ./uninstall.sh"
+    echo -e ""
+    echo -e "  # Actually remove installed files"
+    echo -e "  ./uninstall.sh --confirm"
+    echo -e ""
+    echo -e "${YELLOW}Note:${NC}"
+    echo -e "  If you want to remove configuration files as well, run:"
+    echo -e "  ${BLUE}rm -rf ~/.config/obsbot-meet2-control/${NC}"
+    echo -e ""
 }
 
 # Check if file exists and remove it

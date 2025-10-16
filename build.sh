@@ -38,58 +38,56 @@ print_msg() {
 
 # Show usage information
 show_usage() {
-    cat << EOF
-${GREEN}OBSBOT Meet 2 Control - Build Script${NC}
-
-${YELLOW}Usage:${NC}
-  ./build.sh <command> [--confirm]
-
-${YELLOW}Commands:${NC}
-  ${BLUE}build${NC}
-    Compiles the project in the build/ directory.
-
-    What it does:
-    - Creates build/ directory if it doesn't exist
-    - Runs CMake to configure the project
-    - Compiles both GUI and CLI applications
-    - Binaries will be in build/obsbot-meet2-gui and build/obsbot-meet2-cli
-
-    ${YELLOW}Example:${NC} ./build.sh build --confirm
-
-  ${BLUE}install${NC}
-    Builds the project and installs binaries to your local bin directory.
-
-    What it does:
-    - Runs the build process (as above)
-    - Copies binaries to ${INSTALL_DIR}
-    - Makes them executable
-    - Installs desktop launcher (appears in your application menu)
-    - Installs application icon
-    - Checks if install directory is in your PATH
-    - Offers to add to PATH if needed (optional, requires your approval)
-
-    ${YELLOW}Example:${NC} ./build.sh install --confirm
-
-  ${BLUE}clean${NC}
-    Removes the build/ directory for a fresh start.
-
-    ${YELLOW}Example:${NC} ./build.sh clean --confirm
-
-  ${BLUE}help${NC}
-    Shows this help message.
-
-${YELLOW}Options:${NC}
-  ${BLUE}--confirm${NC}
-    Required flag to actually execute the command. Without this flag,
-    the script will only show what it would do without making changes.
-
-${YELLOW}Notes:${NC}
-- Install directory: ${INSTALL_DIR}
-- Build directory: ${BUILD_DIR}
-- The script will prompt for confirmation before making PATH changes
-- You can safely run commands without --confirm to see what will happen
-
-EOF
+    echo -e "${GREEN}OBSBOT Meet 2 Control - Build Script${NC}"
+    echo -e ""
+    echo -e "${YELLOW}Usage:${NC}"
+    echo -e "  ./build.sh <command> [--confirm]"
+    echo -e ""
+    echo -e "${YELLOW}Commands:${NC}"
+    echo -e "  ${BLUE}build${NC}"
+    echo -e "    Compiles the project in the build/ directory."
+    echo -e ""
+    echo -e "    What it does:"
+    echo -e "    - Creates build/ directory if it doesn't exist"
+    echo -e "    - Runs CMake to configure the project"
+    echo -e "    - Compiles both GUI and CLI applications"
+    echo -e "    - Binaries will be in build/obsbot-meet2-gui and build/obsbot-meet2-cli"
+    echo -e ""
+    echo -e "    ${YELLOW}Example:${NC} ./build.sh build --confirm"
+    echo -e ""
+    echo -e "  ${BLUE}install${NC}"
+    echo -e "    Builds the project and installs binaries to your local bin directory."
+    echo -e ""
+    echo -e "    What it does:"
+    echo -e "    - Runs the build process (as above)"
+    echo -e "    - Copies binaries to ${INSTALL_DIR}"
+    echo -e "    - Makes them executable"
+    echo -e "    - Installs desktop launcher (appears in your application menu)"
+    echo -e "    - Installs application icon"
+    echo -e "    - Checks if install directory is in your PATH"
+    echo -e "    - Offers to add to PATH if needed (optional, requires your approval)"
+    echo -e ""
+    echo -e "    ${YELLOW}Example:${NC} ./build.sh install --confirm"
+    echo -e ""
+    echo -e "  ${BLUE}clean${NC}"
+    echo -e "    Removes the build/ directory for a fresh start."
+    echo -e ""
+    echo -e "    ${YELLOW}Example:${NC} ./build.sh clean --confirm"
+    echo -e ""
+    echo -e "  ${BLUE}help${NC}"
+    echo -e "    Shows this help message."
+    echo -e ""
+    echo -e "${YELLOW}Options:${NC}"
+    echo -e "  ${BLUE}--confirm${NC}"
+    echo -e "    Required flag to actually execute the command. Without this flag,"
+    echo -e "    the script will only show what it would do without making changes."
+    echo -e ""
+    echo -e "${YELLOW}Notes:${NC}"
+    echo -e "- Install directory: ${INSTALL_DIR}"
+    echo -e "- Build directory: ${BUILD_DIR}"
+    echo -e "- The script will prompt for confirmation before making PATH changes"
+    echo -e "- You can safely run commands without --confirm to see what will happen"
+    echo -e ""
 }
 
 # Check if directory is in PATH
