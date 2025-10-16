@@ -6,7 +6,12 @@
 #include <QResizeEvent>
 #include <QWindowStateChangeEvent>
 #include <QApplication>
+#include <QCoreApplication>
 #include <QTimer>
+#include <QProcess>
+#include <QRegularExpression>
+#include <QMediaDevices>
+#include <QCameraDevice>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -66,6 +71,10 @@ void MainWindow::setupUI()
     m_previewWidget->setVisible(false);
     connect(m_previewWidget, &CameraPreviewWidget::aspectRatioChanged,
             this, &MainWindow::onPreviewAspectRatioChanged);
+    connect(m_previewWidget, &CameraPreviewWidget::previewStarted,
+            this, &MainWindow::onPreviewStarted);
+    connect(m_previewWidget, &CameraPreviewWidget::previewFailed,
+            this, &MainWindow::onPreviewFailed);
     // Don't add to layout yet - will be added when preview is enabled
 
     // Right: Controls sidebar (auto-sizes to content)
@@ -85,6 +94,13 @@ void MainWindow::setupUI()
     m_deviceInfoLabel->setStyleSheet("font-weight: bold; padding: 5px 0px;");
     m_deviceInfoLabel->setWordWrap(true);
     sidebarLayout->addWidget(m_deviceInfoLabel);
+
+    // Camera warning (for "camera in use" messages)
+    m_cameraWarningLabel = new QLabel("", this);
+    m_cameraWarningLabel->setStyleSheet("font-weight: bold; padding: 5px 0px; color: #FFA500;");  // Orange color
+    m_cameraWarningLabel->setWordWrap(true);
+    m_cameraWarningLabel->setVisible(false);
+    sidebarLayout->addWidget(m_cameraWarningLabel);
 
     // Create all control widgets (always visible)
     m_trackingWidget = new TrackingControlWidget(m_controller, this);
@@ -111,39 +127,34 @@ void MainWindow::setupUI()
 void MainWindow::onTogglePreview(bool enabled)
 {
     if (enabled) {
-        // Force fresh layout calculation
-        m_sidebar->updateGeometry();
-        m_mainLayout->invalidate();
-        m_mainLayout->activate();
-        QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+        // Find which video device is the OBSBOT camera
+        QString devicePath = findObsbotVideoDevice();
 
-        // Add preview widget to layout (at position 0, before sidebar)
-        m_mainLayout->insertWidget(0, m_previewWidget, 1);  // Stretch factor 1
+        if (devicePath.isEmpty()) {
+            // Could not detect OBSBOT camera device
+            QString warningText = "⚠ Cannot detect camera device\n(OBSBOT camera not found in video devices)";
+            m_cameraWarningLabel->setText(warningText);
+            m_cameraWarningLabel->setVisible(true);
+            m_previewToggleButton->setChecked(false);
+            return;
+        }
 
-        // Calculate preview width based on actual sidebar height
-        int previewWidth = static_cast<int>(m_sidebar->height() * m_previewAspectRatio);
-        m_previewWidget->setFixedWidth(previewWidth);
+        // Check if camera is already in use BEFORE doing any layout changes
+        QString process = getProcessUsingCamera(devicePath);
+        if (!process.isEmpty()) {
+            // Camera is in use - show warning and abort
+            QString warningText = "⚠ Cannot open camera preview\n(In use by: " + process + ")";
+            m_cameraWarningLabel->setText(warningText);
+            m_cameraWarningLabel->setVisible(true);
 
-        m_previewWidget->setVisible(true);
+            // Uncheck the button
+            m_previewToggleButton->setChecked(false);
+            return;
+        }
+
+        // Try to enable preview - will emit previewStarted() or previewFailed()
         m_previewWidget->enablePreview(true);
-        m_previewToggleButton->setText("Hide Camera Preview");
 
-        // Force layout recalculation after adding preview
-        m_mainLayout->invalidate();
-        m_mainLayout->activate();
-        QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
-
-        // Expand window to fit preview + sidebar
-        // Use sizeHint() to get intended width, not current width
-        int sidebarWidth = m_sidebar->sizeHint().width();
-        int totalWidth = previewWidth + sidebarWidth;
-        setMinimumWidth(totalWidth);
-        resize(totalWidth, height());
-
-        // Clear constraints after a moment
-        QTimer::singleShot(100, this, [this]() {
-            setMinimumWidth(0);
-        });
     } else {
         m_previewWidget->enablePreview(false);
         m_previewWidget->setVisible(false);
@@ -405,4 +416,125 @@ void MainWindow::changeEvent(QEvent *event)
             }
         }
     }
+}
+
+void MainWindow::onPreviewStarted()
+{
+    // Clear warning when preview successfully starts
+    m_cameraWarningLabel->setVisible(false);
+    m_cameraWarningLabel->setText("");
+
+    // NOW do the layout expansion (camera successfully opened)
+    // Force fresh layout calculation
+    m_sidebar->updateGeometry();
+    m_mainLayout->invalidate();
+    m_mainLayout->activate();
+    QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+
+    // Add preview widget to layout (at position 0, before sidebar)
+    m_mainLayout->insertWidget(0, m_previewWidget, 1);  // Stretch factor 1
+
+    // Calculate preview width based on actual sidebar height
+    int previewWidth = static_cast<int>(m_sidebar->height() * m_previewAspectRatio);
+    m_previewWidget->setFixedWidth(previewWidth);
+
+    m_previewWidget->setVisible(true);
+    m_previewToggleButton->setText("Hide Camera Preview");
+
+    // Force layout recalculation after adding preview
+    m_mainLayout->invalidate();
+    m_mainLayout->activate();
+    QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+
+    // Expand window to fit preview + sidebar
+    // Use sizeHint() to get intended width, not current width
+    int sidebarWidth = m_sidebar->sizeHint().width();
+    int totalWidth = previewWidth + sidebarWidth;
+    setMinimumWidth(totalWidth);
+    resize(totalWidth, height());
+
+    // Clear constraints after a moment
+    QTimer::singleShot(100, this, [this]() {
+        setMinimumWidth(0);
+    });
+}
+
+void MainWindow::onPreviewFailed(const QString &error)
+{
+    // Show warning when preview fails
+    QString warningText = "⚠ Cannot open camera preview";
+
+    // Try to detect which process is using the camera
+    QString process = getProcessUsingCamera("/dev/video0");
+    if (!process.isEmpty()) {
+        warningText += "\n(In use by: " + process + ")";
+    } else {
+        warningText += "\n(In use by another application)";
+    }
+
+    m_cameraWarningLabel->setText(warningText);
+    m_cameraWarningLabel->setVisible(true);
+
+    // Uncheck the toggle button since preview failed
+    m_previewToggleButton->setChecked(false);
+}
+
+QString MainWindow::findObsbotVideoDevice()
+{
+    // Find which /dev/video* device is the OBSBOT camera
+    const QList<QCameraDevice> cameras = QMediaDevices::videoInputs();
+
+    for (const QCameraDevice &cameraDevice : cameras) {
+        if (cameraDevice.description().contains("OBSBOT", Qt::CaseInsensitive) ||
+            cameraDevice.description().contains("Meet", Qt::CaseInsensitive)) {
+            // Try to extract device path from ID
+            // QCameraDevice ID on Linux is typically the device path like "/dev/video0"
+            QString id = cameraDevice.id();
+            if (id.startsWith("/dev/video")) {
+                return id;
+            }
+        }
+    }
+
+    // Not found - return empty string
+    return QString();
+}
+
+QString MainWindow::getProcessUsingCamera(const QString &devicePath)
+{
+    // Use lsof to find which process has the camera device open
+    QProcess process;
+    process.start("lsof", QStringList() << devicePath);
+    process.waitForFinished(1000);
+
+    QString output = process.readAllStandardOutput();
+    QStringList lines = output.split('\n');
+
+    // Get our own PID to filter ourselves out
+    qint64 ourPid = QCoreApplication::applicationPid();
+
+    // lsof output format:
+    // COMMAND   PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+    // chrome  12345 user   42u   CHR  81,0      0t0  123 /dev/video0
+
+    for (int i = 1; i < lines.size(); ++i) {  // Skip header line
+        QString line = lines[i].trimmed();
+        if (line.isEmpty()) continue;
+
+        QStringList parts = line.split(QRegularExpression("\\s+"));
+        if (parts.size() >= 2) {
+            QString command = parts[0];
+            QString pidStr = parts[1];
+            qint64 pid = pidStr.toLongLong();
+
+            // Skip our own process - we already have the camera for control
+            if (pid == ourPid) {
+                continue;
+            }
+
+            return QString("%1 (PID: %2)").arg(command).arg(pidStr);
+        }
+    }
+
+    return QString();  // Not found (or only we're using it)
 }

@@ -31,6 +31,8 @@ public:
 signals:
     void previewStateChanged(bool enabled);
     void aspectRatioChanged(double ratio);  // width / height
+    void previewStarted();  // Emitted when preview successfully starts
+    void previewFailed(const QString &error);  // Emitted when preview fails to start
 
 private slots:
     void onCameraError(QCamera::Error error);

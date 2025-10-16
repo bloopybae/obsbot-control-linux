@@ -73,8 +73,7 @@ void CameraPreviewWidget::startPreview()
     }
 
     if (selectedCamera.isNull()) {
-        QMessageBox::warning(this, "Camera Preview",
-            "No camera found. Please ensure the OBSBOT Meet 2 is connected.");
+        emit previewFailed("No camera found");
         return;
     }
 
@@ -90,6 +89,13 @@ void CameraPreviewWidget::startPreview()
     // Start camera
     m_camera->start();
 
+    // Check if camera actually started
+    if (m_camera->error() != QCamera::NoError) {
+        emit previewFailed(m_camera->errorString());
+        stopPreview();
+        return;
+    }
+
     m_previewEnabled = true;
 
     // Get camera resolution to calculate aspect ratio
@@ -104,6 +110,7 @@ void CameraPreviewWidget::startPreview()
     }
 
     emit previewStateChanged(true);
+    emit previewStarted();
 }
 
 void CameraPreviewWidget::stopPreview()
@@ -130,8 +137,7 @@ void CameraPreviewWidget::stopPreview()
 void CameraPreviewWidget::onCameraError(QCamera::Error error)
 {
     if (error != QCamera::NoError && m_camera) {
-        QMessageBox::warning(this, "Camera Error",
-            QString("Camera error: %1").arg(m_camera->errorString()));
+        emit previewFailed(m_camera->errorString());
         stopPreview();
     }
 }

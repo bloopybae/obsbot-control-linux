@@ -34,12 +34,16 @@ private slots:
     void onStateChangedSaveConfig();
     void onTogglePreview(bool enabled);
     void onPreviewAspectRatioChanged(double ratio);
+    void onPreviewStarted();
+    void onPreviewFailed(const QString &error);
 
 private:
     void setupUI();
     void loadConfiguration();
     void handleConfigErrors(const std::vector<Config::ValidationError> &errors);
     CameraController::CameraState getUIState() const;  // Get current UI state
+    QString getProcessUsingCamera(const QString &devicePath);  // Detect which process is using camera
+    QString findObsbotVideoDevice();  // Find which /dev/video* device is the OBSBOT camera
 
     // Controller
     CameraController *m_controller;
@@ -47,6 +51,7 @@ private:
     // UI
     QPushButton *m_previewToggleButton;
     QLabel *m_deviceInfoLabel;
+    QLabel *m_cameraWarningLabel;  // Warning for camera in use
     QLabel *m_statusLabel;
     QWidget *m_sidebar;
     QHBoxLayout *m_mainLayout;
