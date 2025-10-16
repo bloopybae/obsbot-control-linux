@@ -3,6 +3,7 @@
 #include <QWidget>
 #include <QFrame>
 #include <QIcon>
+#include <QEvent>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -81,11 +82,13 @@ void MainWindow::setupUI()
     m_trackingWidget = new TrackingControlWidget(m_controller, this);
     m_ptzWidget = new PTZControlWidget(m_controller, this);
     m_settingsWidget = new CameraSettingsWidget(m_controller, this);
+    m_previewWidget = new CameraPreviewWidget(this);
 
     // Add them to layout (visibility will be controlled by mode)
     m_controlsLayout->addWidget(m_trackingWidget);
     m_controlsLayout->addWidget(m_ptzWidget);
     m_controlsLayout->addWidget(m_settingsWidget);
+    m_controlsLayout->addWidget(m_previewWidget);
 
     mainLayout->addLayout(m_controlsLayout);
 
@@ -296,4 +299,18 @@ CameraController::CameraState MainWindow::getUIState() const
     state.zoom = currentState.zoom;
 
     return state;
+}
+
+void MainWindow::changeEvent(QEvent *event)
+{
+    QMainWindow::changeEvent(event);
+
+    if (event->type() == QEvent::WindowStateChange) {
+        // Disable preview when window is minimized
+        if (windowState() & Qt::WindowMinimized) {
+            if (m_previewWidget && m_previewWidget->isPreviewEnabled()) {
+                m_previewWidget->enablePreview(false);
+            }
+        }
+    }
 }

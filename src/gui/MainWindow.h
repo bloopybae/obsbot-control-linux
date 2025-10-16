@@ -10,6 +10,7 @@
 #include "TrackingControlWidget.h"
 #include "PTZControlWidget.h"
 #include "CameraSettingsWidget.h"
+#include "CameraPreviewWidget.h"
 
 /**
  * @brief Main application window
@@ -63,9 +64,13 @@ private:
     TrackingControlWidget *m_trackingWidget;
     PTZControlWidget *m_ptzWidget;
     CameraSettingsWidget *m_settingsWidget;
+    CameraPreviewWidget *m_previewWidget;
 
     // Status timer
     QTimer *m_statusTimer;
+
+protected:
+    void changeEvent(QEvent *event) override;
 };
 
 #endif // MAINWINDOW_H

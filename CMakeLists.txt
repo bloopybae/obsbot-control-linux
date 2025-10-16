@@ -9,7 +9,7 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
 # Find Qt6
-find_package(Qt6 REQUIRED COMPONENTS Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Widgets Multimedia MultimediaWidgets)
 
 # SDK paths
 set(SDK_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/sdk/include)
@@ -28,6 +28,8 @@ add_executable(obsbot-meet2-gui
     src/gui/PTZControlWidget.h
     src/gui/CameraSettingsWidget.cpp
     src/gui/CameraSettingsWidget.h
+    src/gui/CameraPreviewWidget.cpp
+    src/gui/CameraPreviewWidget.h
     src/common/Config.cpp
     src/common/Config.h
     resources/resources.qrc
@@ -44,6 +46,8 @@ target_link_directories(obsbot-meet2-gui PRIVATE
 
 target_link_libraries(obsbot-meet2-gui PRIVATE
     Qt6::Widgets
+    Qt6::Multimedia
+    Qt6::MultimediaWidgets
     dev
 )
 
