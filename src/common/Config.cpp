@@ -138,7 +138,7 @@ bool Config::load(std::vector<ValidationError> &errors)
         "brightness_auto", "brightness",
         "contrast_auto", "contrast",
         "saturation_auto", "saturation",
-        "white_balance"
+        "white_balance", "start_minimized"
     };
 
     for (const auto &key : requiredKeys) {
