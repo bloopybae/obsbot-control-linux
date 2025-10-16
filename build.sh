@@ -14,6 +14,8 @@ NC='\033[0m' # No Color
 
 # Configuration
 INSTALL_DIR="${XDG_BIN_HOME:-$HOME/.local/bin}"
+DESKTOP_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
+ICON_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/icons/hicolor/scalable/apps"
 BUILD_DIR="build"
 PROJECT_NAME="obsbot-meet2"
 
@@ -51,6 +53,8 @@ ${YELLOW}Commands:${NC}
     - Runs the build process (as above)
     - Copies binaries to ${INSTALL_DIR}
     - Makes them executable
+    - Installs desktop launcher (appears in your application menu)
+    - Installs application icon
     - Checks if install directory is in your PATH
     - Offers to add to PATH if needed (optional, requires your approval)
 
@@ -159,8 +163,114 @@ offer_path_update() {
     fi
 }
 
+# Check for build dependencies
+check_dependencies() {
+    print_msg "$BLUE" "🔍 Checking build dependencies..."
+    echo ""
+
+    local all_ok=true
+
+    # Check for cmake
+    if command -v cmake &> /dev/null; then
+        local cmake_version=$(cmake --version | head -1 | awk '{print $3}')
+        print_msg "$GREEN" "  ✓ CMake ($cmake_version)"
+    else
+        print_msg "$RED" "  ✗ CMake - NOT FOUND"
+        print_msg "$YELLOW" "    Install: sudo apt install cmake"
+        all_ok=false
+    fi
+
+    # Check for make
+    if command -v make &> /dev/null; then
+        print_msg "$GREEN" "  ✓ Make"
+    else
+        print_msg "$RED" "  ✗ Make - NOT FOUND"
+        print_msg "$YELLOW" "    Install: sudo apt install build-essential"
+        all_ok=false
+    fi
+
+    # Check for C++ compiler
+    if command -v g++ &> /dev/null; then
+        local gxx_version=$(g++ --version | head -1 | awk '{print $3}')
+        print_msg "$GREEN" "  ✓ C++ Compiler (g++ $gxx_version)"
+    elif command -v clang++ &> /dev/null; then
+        local clang_version=$(clang++ --version | head -1 | awk '{print $3}')
+        print_msg "$GREEN" "  ✓ C++ Compiler (clang++ $clang_version)"
+    else
+        print_msg "$RED" "  ✗ C++ Compiler - NOT FOUND"
+        print_msg "$YELLOW" "    Install: sudo apt install build-essential"
+        all_ok=false
+    fi
+
+    # Check for pkg-config
+    if command -v pkg-config &> /dev/null; then
+        print_msg "$GREEN" "  ✓ pkg-config"
+    else
+        print_msg "$RED" "  ✗ pkg-config - NOT FOUND"
+        print_msg "$YELLOW" "    Install: sudo apt install pkg-config"
+        all_ok=false
+    fi
+
+    # Check for Qt6 Core
+    if pkg-config --exists Qt6Core 2>/dev/null; then
+        local qt6_version=$(pkg-config --modversion Qt6Core)
+        print_msg "$GREEN" "  ✓ Qt6 Core ($qt6_version)"
+    else
+        print_msg "$RED" "  ✗ Qt6 Core - NOT FOUND"
+        print_msg "$YELLOW" "    Install: sudo apt install qt6-base-dev"
+        all_ok=false
+    fi
+
+    # Check for Qt6 Widgets
+    if pkg-config --exists Qt6Widgets 2>/dev/null; then
+        print_msg "$GREEN" "  ✓ Qt6 Widgets"
+    else
+        print_msg "$RED" "  ✗ Qt6 Widgets - NOT FOUND"
+        print_msg "$YELLOW" "    Install: sudo apt install qt6-base-dev"
+        all_ok=false
+    fi
+
+    # Check for Qt6 Multimedia
+    if pkg-config --exists Qt6Multimedia 2>/dev/null; then
+        print_msg "$GREEN" "  ✓ Qt6 Multimedia"
+    else
+        print_msg "$RED" "  ✗ Qt6 Multimedia - NOT FOUND"
+        print_msg "$YELLOW" "    Install: sudo apt install qt6-multimedia-dev"
+        all_ok=false
+    fi
+
+    # Check for optional but recommended tools
+    echo ""
+    print_msg "$BLUE" "Optional dependencies:"
+
+    if command -v lsof &> /dev/null; then
+        print_msg "$GREEN" "  ✓ lsof (for camera usage detection)"
+    else
+        print_msg "$YELLOW" "  ⚠ lsof - NOT FOUND (optional, but recommended)"
+        print_msg "$BLUE" "    Install: sudo apt install lsof"
+    fi
+
+    echo ""
+    if [ "$all_ok" = true ]; then
+        print_msg "$GREEN" "✓ All required dependencies are installed!"
+        return 0
+    else
+        print_msg "$RED" "✗ Some required dependencies are missing."
+        print_msg "$YELLOW" "\nPlease install the missing packages and try again."
+        return 1
+    fi
+}
+
 # Build the project
 do_build() {
+    # Check dependencies first
+    if ! check_dependencies; then
+        echo ""
+        print_msg "$RED" "❌ Cannot build: missing dependencies"
+        exit 1
+    fi
+
+    echo ""
     print_msg "$GREEN" "🔨 Building OBSBOT Meet 2 Control..."
 
     # Create build directory
@@ -220,9 +330,26 @@ do_install() {
         print_msg "$YELLOW" "Skipping CLI installation."
     fi
 
+    # Install desktop launcher
+    echo ""
+    print_msg "$BLUE" "Installing desktop launcher..."
+    mkdir -p "$DESKTOP_DIR"
+    mkdir -p "$ICON_DIR"
+
+    cp "obsbot-meet2-control.desktop" "$DESKTOP_DIR/"
+    chmod +x "$DESKTOP_DIR/obsbot-meet2-control.desktop"
+
+    cp "resources/icons/camera.svg" "$ICON_DIR/obsbot-meet2-control.svg"
+
+    # Update desktop database if available
+    if command -v update-desktop-database &> /dev/null; then
+        update-desktop-database "$DESKTOP_DIR" 2>/dev/null || true
+    fi
+
     print_msg "$GREEN" "\n✓ Installation complete!"
     print_msg "$NC" "\nInstalled applications:"
     echo -e "$BLUE$installed_apps$NC"
+    print_msg "$NC" "\nDesktop launcher installed - check your application menu!"
 
     # Check if install dir is in PATH
     if ! check_path "$INSTALL_DIR"; then
@@ -287,8 +414,10 @@ main() {
                 print_msg "$BLUE" "  2. Create $INSTALL_DIR if needed"
                 print_msg "$BLUE" "  3. Copy binaries to $INSTALL_DIR"
                 print_msg "$BLUE" "  4. Make binaries executable"
-                print_msg "$BLUE" "  5. Check if $INSTALL_DIR is in PATH"
-                print_msg "$BLUE" "  6. Offer to add to PATH if needed (with your approval)"
+                print_msg "$BLUE" "  5. Install desktop launcher to $DESKTOP_DIR"
+                print_msg "$BLUE" "  6. Install icon to $ICON_DIR"
+                print_msg "$BLUE" "  7. Check if $INSTALL_DIR is in PATH"
+                print_msg "$BLUE" "  8. Offer to add to PATH if needed (with your approval)"
                 echo ""
                 print_msg "$YELLOW" "To actually install, run:"
                 print_msg "$GREEN" "  ./build.sh install --confirm"
