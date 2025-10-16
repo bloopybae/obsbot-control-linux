@@ -67,13 +67,41 @@ The OBSBOT Meet 2 has excellent Linux UVC support, but lacks native control soft
 - V4L2 (Video4Linux2) support
 - `lsof` for camera usage detection (optional but recommended)
 
-## Building
+## Quick Start
+
+### Using the Build Script (Recommended)
+
+The easiest way to build and install:
 
 ```bash
 # Clone the repository
 git clone https://github.com/aaronsb/obsbot-controls-qt-linux.git
 cd obsbot-controls-qt-linux
 
+# See what the build will do (dry run)
+./build.sh build
+
+# Build the project
+./build.sh build --confirm
+
+# Install to ~/.local/bin (includes optional CLI tool)
+./build.sh install --confirm
+```
+
+The build script features:
+- **Safe dry-run mode** - See what will happen before making changes
+- **Smart PATH detection** - Checks if install directory is in your PATH
+- **Shell integration** - Offers to update ~/.bashrc or ~/.zshrc automatically
+- **Optional CLI install** - Choose whether to install the CLI tool
+- **XDG compliant** - Installs to `~/.local/bin` by default
+
+Run `./build.sh help` for complete documentation.
+
+### Manual Build
+
+If you prefer to build manually:
+
+```bash
 # Create build directory
 mkdir build && cd build
 
@@ -83,17 +111,7 @@ cmake ..
 # Build
 make -j$(nproc)
 
-# Run
-./obsbot-meet2-gui
-```
-
-## Installation
-
-```bash
-# After building, install system-wide (optional)
-sudo make install
-
-# Or run directly from build directory
+# Run from build directory
 ./obsbot-meet2-gui
 ```
 
