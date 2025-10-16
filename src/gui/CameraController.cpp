@@ -47,6 +47,36 @@ void CameraController::connectToCamera()
 
     Devices::get().setDevChangedCallback(onDevChanged, nullptr);
     Devices::get().setEnableMdnsScan(false);  // USB only
+
+    // Actively check for existing devices (handles reconnection scenario)
+    // The callback only fires on connect/disconnect events, so if the device
+    // is already connected (e.g., after window restore), we need to connect directly
+    auto dev_list = Devices::get().getDevList();
+    if (!dev_list.empty() && !m_connected) {
+        m_device = dev_list.front();
+        m_connected = true;
+
+        m_cameraInfo.name = QString::fromStdString(m_device->devName());
+        m_cameraInfo.serialNumber = QString::fromStdString(m_device->devSn());
+        m_cameraInfo.version = QString::fromStdString(m_device->devVersion());
+        m_cameraInfo.productType = m_device->productType();
+        m_cameraInfo.connected = true;
+
+        emit cameraConnected(m_cameraInfo);
+        updateState();
+    }
+}
+
+void CameraController::disconnectFromCamera()
+{
+    if (m_connected) {
+        // Release our device handle - this allows other apps to access the camera
+        m_device.reset();
+        m_connected = false;
+        m_cameraInfo.connected = false;
+
+        emit cameraDisconnected();
+    }
 }
 
 CameraController::CameraState CameraController::getCurrentState()

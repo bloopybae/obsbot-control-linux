@@ -66,6 +66,7 @@ public:
     bool isConnected() const { return m_connected; }
     CameraInfo getCameraInfo() const { return m_cameraInfo; }
     void connectToCamera();
+    void disconnectFromCamera();
 
     // State
     CameraState getCurrentState();

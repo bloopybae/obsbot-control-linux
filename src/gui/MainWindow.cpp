@@ -4,12 +4,14 @@
 #include <QIcon>
 #include <QEvent>
 #include <QResizeEvent>
+#include <QWindowStateChangeEvent>
 #include <QApplication>
 #include <QTimer>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , m_previewAspectRatio(16.0 / 9.0)  // Default to 16:9
+    , m_previewStateBeforeMinimize(false)
 {
     setWindowTitle("OBSBOT Meet 2 Control");
     setWindowIcon(QIcon(":/icons/camera.svg"));
@@ -373,10 +375,33 @@ void MainWindow::changeEvent(QEvent *event)
     QMainWindow::changeEvent(event);
 
     if (event->type() == QEvent::WindowStateChange) {
-        // Disable preview when window is minimized
+        QWindowStateChangeEvent *stateEvent = static_cast<QWindowStateChangeEvent*>(event);
+
         if (windowState() & Qt::WindowMinimized) {
-            if (m_previewToggleButton->isChecked()) {
+            // Window is being minimized
+
+            // Save preview state
+            m_previewStateBeforeMinimize = m_previewWidget->isPreviewEnabled();
+
+            // Disable preview if it's on
+            if (m_previewStateBeforeMinimize) {
                 m_previewToggleButton->setChecked(false);
+            }
+
+            // Disconnect from camera to free resources
+            m_controller->disconnectFromCamera();
+
+        } else if (stateEvent->oldState() & Qt::WindowMinimized) {
+            // Window is being restored from minimized state
+
+            // ALWAYS reconnect to camera (regardless of preview state)
+            m_controller->connectToCamera();
+
+            // ONLY restore preview if it was enabled before minimize
+            if (m_previewStateBeforeMinimize) {
+                QTimer::singleShot(1000, this, [this]() {
+                    m_previewToggleButton->setChecked(true);
+                });
             }
         }
     }

@@ -63,6 +63,9 @@ private:
     // Preview aspect ratio (width/height)
     double m_previewAspectRatio;
 
+    // Track preview state before minimize
+    bool m_previewStateBeforeMinimize;
+
 protected:
     void changeEvent(QEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
