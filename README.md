@@ -69,51 +69,29 @@ The OBSBOT Meet 2 has excellent Linux UVC support, but lacks native control soft
 
 ## Quick Start
 
-### Using the Build Script (Recommended)
-
-The easiest way to build and install:
-
 ```bash
-# Clone the repository
+# Clone and build
 git clone https://github.com/aaronsb/obsbot-controls-qt-linux.git
 cd obsbot-controls-qt-linux
-
-# See what the build will do (dry run)
-./build.sh build
-
-# Build the project
-./build.sh build --confirm
-
-# Install to ~/.local/bin (includes optional CLI tool)
 ./build.sh install --confirm
 ```
 
-The build script features:
-- **Safe dry-run mode** - See what will happen before making changes
-- **Smart PATH detection** - Checks if install directory is in your PATH
-- **Shell integration** - Offers to update ~/.bashrc or ~/.zshrc automatically
-- **Optional CLI install** - Choose whether to install the CLI tool
-- **XDG compliant** - Installs to `~/.local/bin` by default
+The build script automatically:
+- ✅ Checks dependencies (shows install commands for your distro)
+- ✅ Builds the application
+- ✅ Installs to `~/.local/bin`
+- ✅ Adds desktop launcher to your app menu
+- ✅ Offers to update your PATH if needed
 
-Run `./build.sh help` for complete documentation.
-
-### Manual Build
-
-If you prefer to build manually:
-
+**Common Commands:**
 ```bash
-# Create build directory
-mkdir build && cd build
-
-# Configure with CMake
-cmake ..
-
-# Build
-make -j$(nproc)
-
-# Run from build directory
-./obsbot-meet2-gui
+./build.sh build --confirm    # Build only
+./build.sh install --confirm  # Build and install
+./build.sh help              # Show all options
+./uninstall.sh --confirm     # Remove installation
 ```
+
+📖 **[Detailed Build Instructions →](docs/BUILD.md)** - Dependencies, manual build, troubleshooting
 
 ## Usage
 
