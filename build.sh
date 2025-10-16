@@ -435,7 +435,9 @@ do_install() {
     mkdir -p "$DESKTOP_DIR"
     mkdir -p "$ICON_DIR"
 
-    cp "obsbot-meet2-control.desktop" "$DESKTOP_DIR/"
+    # Create desktop file with full path to executable
+    sed "s|Exec=obsbot-meet2-gui|Exec=$INSTALL_DIR/obsbot-meet2-gui|g" \
+        "obsbot-meet2-control.desktop" > "$DESKTOP_DIR/obsbot-meet2-control.desktop"
     chmod +x "$DESKTOP_DIR/obsbot-meet2-control.desktop"
 
     cp "resources/icons/camera.svg" "$ICON_DIR/obsbot-meet2-control.svg"
