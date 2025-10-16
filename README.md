@@ -2,6 +2,15 @@
 
 A native Qt6 application for controlling OBSBOT Meet 2 cameras on Linux. Provides full camera control with an intuitive GUI while allowing simultaneous use with streaming/conferencing software.
 
+## Screenshots
+
+<p align="center">
+  <img src="docs/media/Screenshot_20251016_084333.png" alt="Main Application Interface" width="300"/>
+  <img src="docs/media/Screenshot_20251016_084456.png" alt="Camera Preview with Face Tracking" width="600"/>
+</p>
+
+*Left: Main control interface with PTZ controls, auto-framing, and advanced settings. Right: Live preview showing face tracking in action.*
+
 ## Features
 
 ### Camera Control
