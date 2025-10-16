@@ -26,6 +26,7 @@ fi
 INSTALL_DIR="${XDG_BIN_HOME:-$HOME/.local/bin}"
 DESKTOP_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
 ICON_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/icons/hicolor/scalable/apps"
+CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/obsbot-meet2-control"
 
 # Print colored message
 print_msg() {
@@ -47,11 +48,12 @@ show_usage() {
     echo -e "  - ${BLUE}$INSTALL_DIR/obsbot-meet2-cli${NC}"
     echo -e "  - ${BLUE}$DESKTOP_DIR/obsbot-meet2-control.desktop${NC}"
     echo -e "  - ${BLUE}$ICON_DIR/obsbot-meet2-control.svg${NC}"
+    echo -e "  - ${BLUE}$CONFIG_DIR/settings.conf${NC}"
+    echo -e "  - ${BLUE}$CONFIG_DIR/${NC} (if empty after removing config file)"
     echo -e ""
     echo -e "${YELLOW}What it does NOT do:${NC}"
     echo -e "  - Does not modify shell configuration files (.bashrc, .zshrc)"
     echo -e "  - Does not remove PATH statements"
-    echo -e "  - Does not remove configuration files (~/.config/obsbot-meet2-control/)"
     echo -e "  - Only removes files we explicitly installed"
     echo -e ""
     echo -e "${YELLOW}Options:${NC}"
@@ -65,10 +67,6 @@ show_usage() {
     echo -e ""
     echo -e "  # Actually remove installed files"
     echo -e "  ./uninstall.sh --confirm"
-    echo -e ""
-    echo -e "${YELLOW}Note:${NC}"
-    echo -e "  If you want to remove configuration files as well, run:"
-    echo -e "  ${BLUE}rm -rf ~/.config/obsbot-meet2-control/${NC}"
     echo -e ""
 }
 
@@ -124,6 +122,28 @@ do_uninstall() {
         not_found=$((not_found + 1))
     fi
 
+    # Remove config file
+    if remove_file "$CONFIG_DIR/settings.conf" "Configuration file"; then
+        removed=$((removed + 1))
+    else
+        not_found=$((not_found + 1))
+    fi
+
+    # Try to remove config directory if it's empty
+    if [ -d "$CONFIG_DIR" ]; then
+        # Check if directory is empty (no files, no hidden files)
+        if [ -z "$(ls -A "$CONFIG_DIR" 2>/dev/null)" ]; then
+            rmdir "$CONFIG_DIR"
+            print_msg "$GREEN" "✓ Removed empty config directory"
+            removed=$((removed + 1))
+        else
+            echo ""
+            print_msg "$YELLOW" "⚠️  Config directory not empty - leaving it in place"
+            print_msg "$BLUE" "   Directory: $CONFIG_DIR"
+            print_msg "$BLUE" "   Contains unexpected files. Please review and remove manually if desired."
+        fi
+    fi
+
     # Update desktop database if available
     if [ -f "$DESKTOP_DIR/obsbot-meet2-control.desktop" ] || command -v update-desktop-database &> /dev/null; then
         print_msg "$BLUE" "\nUpdating desktop database..."
@@ -145,11 +165,6 @@ do_uninstall() {
         print_msg "$BLUE" "   (OBSBOT Meet 2 Control may not have been installed)"
     fi
 
-    echo ""
-    print_msg "$BLUE" "Note: Configuration files preserved at:"
-    print_msg "$BLUE" "  ~/.config/obsbot-meet2-control/"
-    print_msg "$NC" "\nTo remove configuration, run:"
-    print_msg "$YELLOW" "  rm -rf ~/.config/obsbot-meet2-control/"
     echo ""
     print_msg "$BLUE" "Note: Shell PATH modifications (if any) were NOT removed."
     print_msg "$NC" "If you added ~/.local/bin to your PATH, you may want to remove that line from:"
@@ -174,6 +189,7 @@ main() {
             "$INSTALL_DIR/obsbot-meet2-cli:CLI tool"
             "$DESKTOP_DIR/obsbot-meet2-control.desktop:Desktop launcher"
             "$ICON_DIR/obsbot-meet2-control.svg:Application icon"
+            "$CONFIG_DIR/settings.conf:Configuration file"
         )
 
         for entry in "${files[@]}"; do
@@ -191,11 +207,22 @@ main() {
 
         echo ""
         print_msg "$BLUE" "Files found: $found / $total"
+        # Check config directory status
+        echo ""
+        if [ -d "$CONFIG_DIR" ]; then
+            if [ -z "$(ls -A "$CONFIG_DIR" 2>/dev/null)" ]; then
+                print_msg "$BLUE" "Config directory will also be removed (empty)"
+            else
+                print_msg "$YELLOW" "Note: Config directory exists and is not empty"
+                print_msg "$BLUE" "  Directory will be left in place if it contains unexpected files"
+            fi
+        fi
+
         echo ""
         print_msg "$YELLOW" "To actually uninstall, run:"
         print_msg "$GREEN" "  ./uninstall.sh --confirm"
         echo ""
-        print_msg "$BLUE" "Note: Configuration and PATH changes will NOT be removed."
+        print_msg "$BLUE" "Note: Shell PATH changes will NOT be removed."
         exit 0
     fi
 
