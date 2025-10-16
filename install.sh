@@ -73,6 +73,22 @@ if [ -d "$PROJECT_DIR" ]; then
 
     print_msg "$BLUE" "📥 Updating repository..."
     cd "$PROJECT_DIR"
+
+    # Check for uncommitted changes
+    if ! git diff-index --quiet HEAD -- 2>/dev/null; then
+        print_msg "$RED" "❌ ERROR: Repository has uncommitted changes!"
+        print_msg "$YELLOW" "Please commit or stash your changes before updating:"
+        echo ""
+        print_msg "$BLUE" "  git status              # See what changed"
+        print_msg "$BLUE" "  git add -A              # Stage all changes"
+        print_msg "$BLUE" "  git commit -m 'msg'     # Commit changes"
+        echo ""
+        print_msg "$YELLOW" "Or to discard local changes:"
+        print_msg "$BLUE" "  git reset --hard HEAD   # WARNING: Loses uncommitted work!"
+        echo ""
+        exit 1
+    fi
+
     git pull
 else
     print_msg "$BLUE" "📥 Cloning repository..."
