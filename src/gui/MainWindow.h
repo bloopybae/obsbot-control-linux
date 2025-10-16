@@ -4,8 +4,11 @@
 #include <QMainWindow>
 #include <QPushButton>
 #include <QLabel>
+#include <QCheckBox>
 #include <QTimer>
 #include <QVBoxLayout>
+#include <QSystemTrayIcon>
+#include <QMenu>
 #include "CameraController.h"
 #include "TrackingControlWidget.h"
 #include "PTZControlWidget.h"
@@ -36,9 +39,14 @@ private slots:
     void onPreviewAspectRatioChanged(double ratio);
     void onPreviewStarted();
     void onPreviewFailed(const QString &error);
+    void onTrayIconActivated(QSystemTrayIcon::ActivationReason reason);
+    void onShowHideAction();
+    void onQuitAction();
+    void onStartMinimizedToggled(bool checked);
 
 private:
     void setupUI();
+    void setupTrayIcon();
     void loadConfiguration();
     void handleConfigErrors(const std::vector<Config::ValidationError> &errors);
     CameraController::CameraState getUIState() const;  // Get current UI state
@@ -53,6 +61,7 @@ private:
     QLabel *m_deviceInfoLabel;
     QLabel *m_cameraWarningLabel;  // Warning for camera in use
     QLabel *m_statusLabel;
+    QCheckBox *m_startMinimizedCheckbox;
     QWidget *m_sidebar;
     QHBoxLayout *m_mainLayout;
 
@@ -71,9 +80,14 @@ private:
     // Track preview state before minimize
     bool m_previewStateBeforeMinimize;
 
+    // System tray
+    QSystemTrayIcon *m_trayIcon;
+    QMenu *m_trayMenu;
+
 protected:
     void changeEvent(QEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
+    void closeEvent(QCloseEvent *event) override;
 };
 
 #endif // MAINWINDOW_H

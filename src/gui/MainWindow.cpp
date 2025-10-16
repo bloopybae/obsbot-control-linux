@@ -12,6 +12,7 @@
 #include <QRegularExpression>
 #include <QMediaDevices>
 #include <QCameraDevice>
+#include <QCloseEvent>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -35,9 +36,18 @@ MainWindow::MainWindow(QWidget *parent)
             this, &MainWindow::onCommandFailed);
 
     setupUI();
+    setupTrayIcon();
 
     // Load configuration
     loadConfiguration();
+
+    // Check if we should start minimized
+    if (m_controller->getConfig().getSettings().startMinimized) {
+        // Start hidden in tray
+        QTimer::singleShot(0, this, [this]() {
+            hide();
+        });
+    }
 
     // Start connecting to camera
     m_controller->connectToCamera();
@@ -111,6 +121,12 @@ void MainWindow::setupUI()
     sidebarLayout->addWidget(m_ptzWidget);
     sidebarLayout->addWidget(m_settingsWidget);
     sidebarLayout->addStretch();
+
+    // Application settings
+    m_startMinimizedCheckbox = new QCheckBox("Start minimized to tray", this);
+    m_startMinimizedCheckbox->setStyleSheet("padding: 5px; font-size: 11px;");
+    connect(m_startMinimizedCheckbox, &QCheckBox::toggled, this, &MainWindow::onStartMinimizedToggled);
+    sidebarLayout->addWidget(m_startMinimizedCheckbox);
 
     // Bottom: Status bar
     m_statusLabel = new QLabel("Status: Initializing...", this);
@@ -291,6 +307,9 @@ void MainWindow::loadConfiguration()
     m_settingsWidget->setSaturationAuto(settings.saturationAuto);
     m_settingsWidget->setSaturation(settings.saturation);
     m_settingsWidget->setWhiteBalance(settings.whiteBalance);
+
+    // Application settings
+    m_startMinimizedCheckbox->setChecked(settings.startMinimized);
 }
 
 void MainWindow::handleConfigErrors(const std::vector<Config::ValidationError> &errors)
@@ -537,4 +556,121 @@ QString MainWindow::getProcessUsingCamera(const QString &devicePath)
     }
 
     return QString();  // Not found (or only we're using it)
+}
+
+void MainWindow::setupTrayIcon()
+{
+    // Create system tray icon
+    m_trayIcon = new QSystemTrayIcon(this);
+    m_trayIcon->setIcon(QIcon(":/icons/camera.svg"));
+    m_trayIcon->setToolTip("OBSBOT Meet 2 Control");
+
+    // Create context menu
+    m_trayMenu = new QMenu(this);
+    QAction *showHideAction = m_trayMenu->addAction("Show/Hide");
+    m_trayMenu->addSeparator();
+    QAction *quitAction = m_trayMenu->addAction("Quit");
+
+    connect(showHideAction, &QAction::triggered, this, &MainWindow::onShowHideAction);
+    connect(quitAction, &QAction::triggered, this, &MainWindow::onQuitAction);
+
+    m_trayIcon->setContextMenu(m_trayMenu);
+
+    // Connect activation (click) signal
+    connect(m_trayIcon, &QSystemTrayIcon::activated, this, &MainWindow::onTrayIconActivated);
+
+    // Show the tray icon
+    m_trayIcon->show();
+}
+
+void MainWindow::onTrayIconActivated(QSystemTrayIcon::ActivationReason reason)
+{
+    if (reason == QSystemTrayIcon::Trigger) {
+        // Single click - toggle visibility
+        onShowHideAction();
+    }
+}
+
+void MainWindow::onShowHideAction()
+{
+    if (isVisible()) {
+        // Save preview state
+        m_previewStateBeforeMinimize = m_previewWidget->isPreviewEnabled();
+
+        // Disable preview if it's on
+        if (m_previewStateBeforeMinimize) {
+            m_previewToggleButton->setChecked(false);
+        }
+
+        // Disconnect from camera to free resources
+        m_controller->disconnectFromCamera();
+
+        hide();
+    } else {
+        // ALWAYS reconnect to camera when restoring from tray
+        m_controller->connectToCamera();
+
+        // ONLY restore preview if it was enabled before hiding
+        if (m_previewStateBeforeMinimize) {
+            QTimer::singleShot(1000, this, [this]() {
+                m_previewToggleButton->setChecked(true);
+            });
+        }
+
+        show();
+        activateWindow();
+        raise();
+    }
+}
+
+void MainWindow::onQuitAction()
+{
+    // Save config before quitting
+    if (m_controller->isConnected()) {
+        m_controller->saveConfig();
+    }
+    QApplication::quit();
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    // Minimize to tray instead of closing
+    if (m_trayIcon && m_trayIcon->isVisible()) {
+        // Save preview state
+        m_previewStateBeforeMinimize = m_previewWidget->isPreviewEnabled();
+
+        // Disable preview if it's on
+        if (m_previewStateBeforeMinimize) {
+            m_previewToggleButton->setChecked(false);
+        }
+
+        // Disconnect from camera to free resources
+        m_controller->disconnectFromCamera();
+
+        hide();
+        event->ignore();
+
+        // Show notification on first minimize
+        static bool firstTime = true;
+        if (firstTime) {
+            m_trayIcon->showMessage(
+                "OBSBOT Meet 2 Control",
+                "Application minimized to system tray. Click the tray icon to restore.",
+                QSystemTrayIcon::Information,
+                3000
+            );
+            firstTime = false;
+        }
+    } else {
+        event->accept();
+    }
+}
+
+void MainWindow::onStartMinimizedToggled(bool checked)
+{
+    // Update config and save
+    auto settings = m_controller->getConfig().getSettings();
+    settings.startMinimized = checked;
+    m_controller->getConfig().setSettings(settings);
+    m_controller->saveConfig();
 }

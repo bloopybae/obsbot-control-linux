@@ -35,6 +35,9 @@ void Config::setDefaults()
     m_settings.saturationAuto = true;
     m_settings.saturation = 128;
     m_settings.whiteBalance = 0;      // Auto
+
+    // Application settings
+    m_settings.startMinimized = false;
 }
 
 std::string Config::getXdgConfigHome() const
@@ -336,6 +339,11 @@ bool Config::parseLine(const std::string &line, int lineNumber, std::vector<Vali
             addError(InvalidValue, "white_balance must be auto/daylight/fluorescent/tungsten/flash/fine/cloudy/shade or numeric");
             return false;
         }
+    } else if (key == "start_minimized") {
+        if (!parseBool(value, m_settings.startMinimized)) {
+            addError(InvalidValue, "start_minimized must be true/false or enabled/disabled");
+            return false;
+        }
     }
 
     return true;
@@ -459,7 +467,11 @@ bool Config::save()
         case 11: wbStr = "shade"; break;
         default: wbStr = "auto";
     }
-    file << "white_balance=" << wbStr << "\n";
+    file << "white_balance=" << wbStr << "\n\n";
+
+    file << "# Application Settings\n";
+    file << "# Start application minimized to system tray\n";
+    file << "start_minimized=" << (m_settings.startMinimized ? "enabled" : "disabled") << "\n";
 
     file.close();
     return true;
