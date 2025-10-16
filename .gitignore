@@ -42,9 +42,9 @@ Makefile
 .*.swp
 .*.swo
 
-# SDK binaries (keep headers and structure)
-sdk/lib/*.so*
-sdk/lib/*.a
+# SDK binaries - now included for complete standalone build
+# sdk/lib/*.so*
+# sdk/lib/*.a
 
 # Logs
 *.log
