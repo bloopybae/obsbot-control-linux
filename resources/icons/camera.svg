@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="128" height="128">
+  <!-- Camera body -->
+  <path fill="#2196F3" d="M4,4H7L9,2H15L17,4H20A2,2 0 0,1 22,6V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V6A2,2 0 0,1 4,4Z"/>
+
+  <!-- Camera lens -->
+  <circle fill="#1976D2" cx="12" cy="12" r="5"/>
+  <circle fill="#BBDEFB" cx="12" cy="12" r="3.5"/>
+  <circle fill="#E3F2FD" cx="10.5" cy="10.5" r="1.5"/>
+
+  <!-- Flash/viewfinder -->
+  <circle fill="#FFC107" cx="18" cy="7" r="1.2"/>
+</svg>

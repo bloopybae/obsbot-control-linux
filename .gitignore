@@ -1,0 +1,50 @@
+# Build directories
+build/
+build-*/
+cmake-build-*/
+
+# Qt generated files
+*_autogen/
+*.qrc.depends
+moc_*.cpp
+ui_*.h
+qrc_*.cpp
+
+# C++ compiled files
+*.o
+*.so
+*.a
+*.dylib
+*.dll
+*.exe
+
+# IDE files
+.vscode/
+.idea/
+*.pro.user
+*.autosave
+.DS_Store
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+install_manifest.txt
+Makefile
+
+# Config files (user-specific)
+*.conf
+
+# Temporary files
+*~
+*.swp
+*.swo
+.*.swp
+.*.swo
+
+# SDK binaries (keep headers and structure)
+sdk/lib/*.so*
+sdk/lib/*.a
+
+# Logs
+*.log
