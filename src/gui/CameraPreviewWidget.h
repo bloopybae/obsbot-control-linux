@@ -30,9 +30,9 @@ public:
 
 signals:
     void previewStateChanged(bool enabled);
+    void aspectRatioChanged(double ratio);  // width / height
 
 private slots:
-    void onTogglePreview();
     void onCameraError(QCamera::Error error);
 
 private:
@@ -43,7 +43,6 @@ private:
     QCamera *m_camera;
     QMediaCaptureSession *m_captureSession;
     QVideoWidget *m_videoWidget;
-    QPushButton *m_toggleButton;
 
     bool m_previewEnabled;
 };

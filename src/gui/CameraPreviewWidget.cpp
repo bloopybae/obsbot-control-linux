@@ -1,7 +1,5 @@
 #include "CameraPreviewWidget.h"
 #include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QLabel>
 #include <QMessageBox>
 #include <QMediaDevices>
 
@@ -10,7 +8,6 @@ CameraPreviewWidget::CameraPreviewWidget(QWidget *parent)
     , m_camera(nullptr)
     , m_captureSession(nullptr)
     , m_videoWidget(nullptr)
-    , m_toggleButton(nullptr)
     , m_previewEnabled(false)
 {
     setupUI();
@@ -24,24 +21,10 @@ CameraPreviewWidget::~CameraPreviewWidget()
 void CameraPreviewWidget::setupUI()
 {
     QVBoxLayout *layout = new QVBoxLayout(this);
-    layout->setContentsMargins(10, 10, 0, 10);  // No margin on right (sidebar border)
-    layout->setSpacing(10);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(0);
 
-    // Toggle button at top
-    QHBoxLayout *controlLayout = new QHBoxLayout();
-    QLabel *titleLabel = new QLabel("Camera Preview", this);
-    titleLabel->setStyleSheet("font-weight: bold; font-size: 12pt;");
-    controlLayout->addWidget(titleLabel);
-    controlLayout->addStretch();
-
-    m_toggleButton = new QPushButton("Enable", this);
-    m_toggleButton->setCheckable(true);
-    m_toggleButton->setMaximumWidth(100);
-    connect(m_toggleButton, &QPushButton::clicked, this, &CameraPreviewWidget::onTogglePreview);
-    controlLayout->addWidget(m_toggleButton);
-    layout->addLayout(controlLayout);
-
-    // Video widget fills remaining space
+    // Video widget fills entire preview area
     m_videoWidget = new QVideoWidget(this);
     m_videoWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     m_videoWidget->setStyleSheet("background-color: black;");
@@ -59,15 +42,7 @@ void CameraPreviewWidget::enablePreview(bool enabled)
         return;
     }
 
-    m_toggleButton->setChecked(enabled);
-    onTogglePreview();
-}
-
-void CameraPreviewWidget::onTogglePreview()
-{
-    bool shouldEnable = m_toggleButton->isChecked();
-
-    if (shouldEnable) {
+    if (enabled) {
         startPreview();
     } else {
         stopPreview();
@@ -100,7 +75,6 @@ void CameraPreviewWidget::startPreview()
     if (selectedCamera.isNull()) {
         QMessageBox::warning(this, "Camera Preview",
             "No camera found. Please ensure the OBSBOT Meet 2 is connected.");
-        m_toggleButton->setChecked(false);
         return;
     }
 
@@ -117,7 +91,17 @@ void CameraPreviewWidget::startPreview()
     m_camera->start();
 
     m_previewEnabled = true;
-    m_toggleButton->setText("Disable");
+
+    // Get camera resolution to calculate aspect ratio
+    QCameraFormat format = m_camera->cameraFormat();
+    QSize resolution = format.resolution();
+    if (resolution.width() > 0 && resolution.height() > 0) {
+        double aspectRatio = static_cast<double>(resolution.width()) / static_cast<double>(resolution.height());
+        emit aspectRatioChanged(aspectRatio);
+    } else {
+        // Fallback to 16:9 if we can't get resolution
+        emit aspectRatioChanged(16.0 / 9.0);
+    }
 
     emit previewStateChanged(true);
 }
@@ -140,9 +124,6 @@ void CameraPreviewWidget::stopPreview()
     }
 
     m_previewEnabled = false;
-    m_toggleButton->setText("Enable");
-    m_toggleButton->setChecked(false);
-
     emit previewStateChanged(false);
 }
 

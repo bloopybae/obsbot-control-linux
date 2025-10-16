@@ -33,6 +33,7 @@ private slots:
     void updateStatus();
     void onStateChangedSaveConfig();
     void onTogglePreview(bool enabled);
+    void onPreviewAspectRatioChanged(double ratio);
 
 private:
     void setupUI();
@@ -47,7 +48,8 @@ private:
     QPushButton *m_previewToggleButton;
     QLabel *m_deviceInfoLabel;
     QLabel *m_statusLabel;
-    QVBoxLayout *m_controlsLayout;
+    QWidget *m_sidebar;
+    QHBoxLayout *m_mainLayout;
 
     // Control widgets
     TrackingControlWidget *m_trackingWidget;
@@ -58,8 +60,12 @@ private:
     // Status timer
     QTimer *m_statusTimer;
 
+    // Preview aspect ratio (width/height)
+    double m_previewAspectRatio;
+
 protected:
     void changeEvent(QEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
 };
 
 #endif // MAINWINDOW_H

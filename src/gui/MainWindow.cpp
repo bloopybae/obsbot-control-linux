@@ -1,13 +1,15 @@
 #include "MainWindow.h"
 #include <QMessageBox>
 #include <QWidget>
-#include <QFrame>
 #include <QIcon>
 #include <QEvent>
-#include <QScrollArea>
+#include <QResizeEvent>
+#include <QApplication>
+#include <QTimer>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
+    , m_previewAspectRatio(16.0 / 9.0)  // Default to 16:9
 {
     setWindowTitle("OBSBOT Meet 2 Control");
     setWindowIcon(QIcon(":/icons/camera.svg"));
@@ -52,65 +54,45 @@ void MainWindow::setupUI()
     QWidget *centralWidget = new QWidget(this);
     setCentralWidget(centralWidget);
 
-    QHBoxLayout *mainLayout = new QHBoxLayout(centralWidget);
-    mainLayout->setContentsMargins(0, 0, 0, 0);
-    mainLayout->setSpacing(0);
+    m_mainLayout = new QHBoxLayout(centralWidget);
+    m_mainLayout->setContentsMargins(0, 0, 0, 0);
+    m_mainLayout->setSpacing(0);
+    m_mainLayout->setSizeConstraint(QLayout::SetFixedSize);
 
-    // Left: Preview drawer (collapsible, starts hidden)
+    // Left: Preview drawer (collapsible, starts hidden, not in layout initially)
     m_previewWidget = new CameraPreviewWidget(this);
     m_previewWidget->setVisible(false);
-    mainLayout->addWidget(m_previewWidget, 1);  // Stretch to fill
+    connect(m_previewWidget, &CameraPreviewWidget::aspectRatioChanged,
+            this, &MainWindow::onPreviewAspectRatioChanged);
+    // Don't add to layout yet - will be added when preview is enabled
 
     // Right: Controls sidebar (auto-sizes to content)
-    QWidget *sidebar = new QWidget(this);
-    QVBoxLayout *sidebarLayout = new QVBoxLayout(sidebar);
-    sidebarLayout->setContentsMargins(0, 0, 0, 0);
-    sidebarLayout->setSpacing(0);
-
-    // Top bar: Preview toggle and device info
-    QWidget *topBar = new QWidget(this);
-    QVBoxLayout *topLayout = new QVBoxLayout(topBar);
-    topLayout->setContentsMargins(10, 10, 10, 10);
+    m_sidebar = new QWidget(this);
+    QVBoxLayout *sidebarLayout = new QVBoxLayout(m_sidebar);
+    sidebarLayout->setContentsMargins(10, 10, 10, 10);
+    sidebarLayout->setSpacing(10);
 
     // Preview toggle button
-    QHBoxLayout *previewLayout = new QHBoxLayout();
     m_previewToggleButton = new QPushButton("Show Camera Preview", this);
     m_previewToggleButton->setCheckable(true);
     connect(m_previewToggleButton, &QPushButton::toggled, this, &MainWindow::onTogglePreview);
-    previewLayout->addWidget(m_previewToggleButton);
-    previewLayout->addStretch();
-    topLayout->addLayout(previewLayout);
+    sidebarLayout->addWidget(m_previewToggleButton);
 
     // Device info
     m_deviceInfoLabel = new QLabel("Connecting to camera...", this);
     m_deviceInfoLabel->setStyleSheet("font-weight: bold; padding: 5px 0px;");
-    topLayout->addWidget(m_deviceInfoLabel);
-
-    sidebarLayout->addWidget(topBar);
-
-    // Scrollable controls area
-    QScrollArea *scrollArea = new QScrollArea(this);
-    scrollArea->setWidgetResizable(true);
-    scrollArea->setFrameShape(QFrame::NoFrame);
-    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-
-    QWidget *scrollContent = new QWidget();
-    m_controlsLayout = new QVBoxLayout(scrollContent);
-    m_controlsLayout->setContentsMargins(10, 10, 10, 10);
-    m_controlsLayout->setSpacing(10);
+    m_deviceInfoLabel->setWordWrap(true);
+    sidebarLayout->addWidget(m_deviceInfoLabel);
 
     // Create all control widgets (always visible)
     m_trackingWidget = new TrackingControlWidget(m_controller, this);
     m_ptzWidget = new PTZControlWidget(m_controller, this);
     m_settingsWidget = new CameraSettingsWidget(m_controller, this);
 
-    m_controlsLayout->addWidget(m_trackingWidget);
-    m_controlsLayout->addWidget(m_ptzWidget);
-    m_controlsLayout->addWidget(m_settingsWidget);
-    m_controlsLayout->addStretch();
-
-    scrollArea->setWidget(scrollContent);
-    sidebarLayout->addWidget(scrollArea, 1);
+    sidebarLayout->addWidget(m_trackingWidget);
+    sidebarLayout->addWidget(m_ptzWidget);
+    sidebarLayout->addWidget(m_settingsWidget);
+    sidebarLayout->addStretch();
 
     // Bottom: Status bar
     m_statusLabel = new QLabel("Status: Initializing...", this);
@@ -118,30 +100,96 @@ void MainWindow::setupUI()
     m_statusLabel->setWordWrap(true);
     sidebarLayout->addWidget(m_statusLabel);
 
-    mainLayout->addWidget(sidebar, 0);  // No stretch, sizes to content
+    // Set sidebar to natural size based on content
+    m_sidebar->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
+
+    m_mainLayout->addWidget(m_sidebar, 0);  // No stretch, sizes to content
 }
 
 void MainWindow::onTogglePreview(bool enabled)
 {
     if (enabled) {
+        // Force fresh layout calculation
+        m_sidebar->updateGeometry();
+        m_mainLayout->invalidate();
+        m_mainLayout->activate();
+        QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+
+        // Add preview widget to layout (at position 0, before sidebar)
+        m_mainLayout->insertWidget(0, m_previewWidget, 1);  // Stretch factor 1
+
+        // Calculate preview width based on actual sidebar height
+        int previewWidth = static_cast<int>(m_sidebar->height() * m_previewAspectRatio);
+        m_previewWidget->setFixedWidth(previewWidth);
+
         m_previewWidget->setVisible(true);
         m_previewWidget->enablePreview(true);
         m_previewToggleButton->setText("Hide Camera Preview");
+
+        // Force layout recalculation after adding preview
+        m_mainLayout->invalidate();
+        m_mainLayout->activate();
+        QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+
+        // Expand window to fit preview + sidebar
+        // Use sizeHint() to get intended width, not current width
+        int sidebarWidth = m_sidebar->sizeHint().width();
+        int totalWidth = previewWidth + sidebarWidth;
+        setMinimumWidth(totalWidth);
+        resize(totalWidth, height());
+
+        // Clear constraints after a moment
+        QTimer::singleShot(100, this, [this]() {
+            setMinimumWidth(0);
+        });
     } else {
         m_previewWidget->enablePreview(false);
         m_previewWidget->setVisible(false);
+
+        // Remove widget from layout completely
+        m_mainLayout->removeWidget(m_previewWidget);
+
         m_previewToggleButton->setText("Show Camera Preview");
+
+        // Force fresh layout calculation as if starting from scratch
+        m_mainLayout->invalidate();
+        m_mainLayout->activate();
+        m_sidebar->updateGeometry();
+        QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+
+        // Get actual sidebar width and force window to shrink
+        int sidebarWidth = m_sidebar->sizeHint().width();
+        setMinimumWidth(sidebarWidth);
+        setMaximumWidth(sidebarWidth);
+        resize(sidebarWidth, height());
+
+        // Clear constraints after a moment
+        QTimer::singleShot(100, this, [this]() {
+            setMinimumWidth(0);
+            setMaximumWidth(QWIDGETSIZE_MAX);
+        });
+    }
+}
+
+void MainWindow::onPreviewAspectRatioChanged(double ratio)
+{
+    m_previewAspectRatio = ratio;
+
+    // Update preview width if it's currently visible, based on sidebar height
+    if (m_previewWidget->isVisible()) {
+        int previewWidth = static_cast<int>(m_sidebar->height() * m_previewAspectRatio);
+        m_previewWidget->setFixedWidth(previewWidth);
     }
 }
 
 void MainWindow::onCameraConnected(const CameraController::CameraInfo &info)
 {
-    QString deviceText = QString("✓ Connected: %1 (v%2)")
+    QString deviceText = QString("✓ Connected:\n%1\n(v%2)")
         .arg(info.name)
         .arg(info.version);
 
     m_deviceInfoLabel->setText(deviceText);
-    m_deviceInfoLabel->setStyleSheet("font-weight: bold; padding: 10px; color: green;");
+    m_deviceInfoLabel->setStyleSheet("font-weight: bold; padding: 5px 0px; color: green;");
 
     // Apply current UI state to camera asynchronously (respects user changes before connection)
     // Use a short delay to let the connection stabilize
@@ -151,6 +199,20 @@ void MainWindow::onCameraConnected(const CameraController::CameraInfo &info)
     });
 
     updateStatus();
+
+    // Recalculate window width if preview is visible
+    // (connection status makes sidebar wider)
+    if (m_previewWidget->isVisible()) {
+        QTimer::singleShot(50, this, [this]() {
+            m_sidebar->updateGeometry();
+            QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+
+            int previewWidth = m_previewWidget->width();
+            int sidebarWidth = m_sidebar->sizeHint().width();
+            int totalWidth = previewWidth + sidebarWidth;
+            resize(totalWidth, height());
+        });
+    }
 }
 
 void MainWindow::onCameraDisconnected()
@@ -293,6 +355,17 @@ CameraController::CameraState MainWindow::getUIState() const
     state.zoom = currentState.zoom;
 
     return state;
+}
+
+void MainWindow::resizeEvent(QResizeEvent *event)
+{
+    QMainWindow::resizeEvent(event);
+
+    // Update preview width when window is manually resized, based on sidebar height
+    if (m_previewWidget->isVisible()) {
+        int previewWidth = static_cast<int>(m_sidebar->height() * m_previewAspectRatio);
+        m_previewWidget->setFixedWidth(previewWidth);
+    }
 }
 
 void MainWindow::changeEvent(QEvent *event)
