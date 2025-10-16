@@ -69,6 +69,24 @@ The OBSBOT Meet 2 has excellent Linux UVC support, but lacks native control soft
 
 ## Quick Start
 
+### One-Line Install
+
+For the adventurous, a single command that clones the repo to `~/src/obsbot-controls-qt-linux` and builds/installs:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/aaronsb/obsbot-controls-qt-linux/main/install.sh | bash
+```
+
+⚠️ **What this does:**
+- Clones repository to `~/src/obsbot-controls-qt-linux`
+- Checks dependencies (shows what to install if missing)
+- Builds and installs the application
+- Adds desktop launcher to your app menu
+
+### Standard Install
+
+If you prefer to review the code first (recommended):
+
 ```bash
 # Clone and build
 git clone https://github.com/aaronsb/obsbot-controls-qt-linux.git
