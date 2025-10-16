@@ -44,7 +44,6 @@ private:
     QMediaCaptureSession *m_captureSession;
     QVideoWidget *m_videoWidget;
     QPushButton *m_toggleButton;
-    QGroupBox *m_groupBox;
 
     bool m_previewEnabled;
 };

@@ -4,10 +4,10 @@
 #include <QFrame>
 #include <QIcon>
 #include <QEvent>
+#include <QScrollArea>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
-    , m_currentMode(SimpleMode)
 {
     setWindowTitle("OBSBOT Meet 2 Control");
     setWindowIcon(QIcon(":/icons/camera.svg"));
@@ -37,8 +37,6 @@ MainWindow::MainWindow(QWidget *parent)
     m_statusTimer = new QTimer(this);
     connect(m_statusTimer, &QTimer::timeout, this, &MainWindow::updateStatus);
     m_statusTimer->start(2000);
-
-    resize(500, 600);
 }
 
 MainWindow::~MainWindow()
@@ -54,90 +52,86 @@ void MainWindow::setupUI()
     QWidget *centralWidget = new QWidget(this);
     setCentralWidget(centralWidget);
 
-    QVBoxLayout *mainLayout = new QVBoxLayout(centralWidget);
+    QHBoxLayout *mainLayout = new QHBoxLayout(centralWidget);
+    mainLayout->setContentsMargins(0, 0, 0, 0);
+    mainLayout->setSpacing(0);
 
-    // Mode selector at the top
-    QHBoxLayout *modeLayout = new QHBoxLayout();
-    modeLayout->addWidget(new QLabel("Control Mode:", this));
-    m_modeSelector = new QComboBox(this);
-    m_modeSelector->addItem("🔹 Simple (Tracking Only)", SimpleMode);
-    m_modeSelector->addItem("🔸 Advanced (+ PTZ Controls)", AdvancedMode);
-    m_modeSelector->addItem("🔶 Expert (All Settings)", ExpertMode);
-    m_modeSelector->setCurrentIndex(0);
-    connect(m_modeSelector, QOverload<int>::of(&QComboBox::currentIndexChanged),
-            this, &MainWindow::onModeChanged);
-    modeLayout->addWidget(m_modeSelector);
-    modeLayout->addStretch();
-    mainLayout->addLayout(modeLayout);
+    // Left: Preview drawer (collapsible, starts hidden)
+    m_previewWidget = new CameraPreviewWidget(this);
+    m_previewWidget->setVisible(false);
+    mainLayout->addWidget(m_previewWidget, 1);  // Stretch to fill
+
+    // Right: Controls sidebar (auto-sizes to content)
+    QWidget *sidebar = new QWidget(this);
+    QVBoxLayout *sidebarLayout = new QVBoxLayout(sidebar);
+    sidebarLayout->setContentsMargins(0, 0, 0, 0);
+    sidebarLayout->setSpacing(0);
+
+    // Top bar: Preview toggle and device info
+    QWidget *topBar = new QWidget(this);
+    QVBoxLayout *topLayout = new QVBoxLayout(topBar);
+    topLayout->setContentsMargins(10, 10, 10, 10);
+
+    // Preview toggle button
+    QHBoxLayout *previewLayout = new QHBoxLayout();
+    m_previewToggleButton = new QPushButton("Show Camera Preview", this);
+    m_previewToggleButton->setCheckable(true);
+    connect(m_previewToggleButton, &QPushButton::toggled, this, &MainWindow::onTogglePreview);
+    previewLayout->addWidget(m_previewToggleButton);
+    previewLayout->addStretch();
+    topLayout->addLayout(previewLayout);
 
     // Device info
     m_deviceInfoLabel = new QLabel("Connecting to camera...", this);
-    m_deviceInfoLabel->setStyleSheet("font-weight: bold; padding: 10px;");
-    mainLayout->addWidget(m_deviceInfoLabel);
+    m_deviceInfoLabel->setStyleSheet("font-weight: bold; padding: 5px 0px;");
+    topLayout->addWidget(m_deviceInfoLabel);
 
-    // Controls area
-    m_controlsLayout = new QVBoxLayout();
+    sidebarLayout->addWidget(topBar);
 
-    // Create all control widgets
+    // Scrollable controls area
+    QScrollArea *scrollArea = new QScrollArea(this);
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setFrameShape(QFrame::NoFrame);
+    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+    QWidget *scrollContent = new QWidget();
+    m_controlsLayout = new QVBoxLayout(scrollContent);
+    m_controlsLayout->setContentsMargins(10, 10, 10, 10);
+    m_controlsLayout->setSpacing(10);
+
+    // Create all control widgets (always visible)
     m_trackingWidget = new TrackingControlWidget(m_controller, this);
     m_ptzWidget = new PTZControlWidget(m_controller, this);
     m_settingsWidget = new CameraSettingsWidget(m_controller, this);
-    m_previewWidget = new CameraPreviewWidget(this);
 
-    // Add them to layout (visibility will be controlled by mode)
     m_controlsLayout->addWidget(m_trackingWidget);
     m_controlsLayout->addWidget(m_ptzWidget);
     m_controlsLayout->addWidget(m_settingsWidget);
-    m_controlsLayout->addWidget(m_previewWidget);
+    m_controlsLayout->addStretch();
 
-    mainLayout->addLayout(m_controlsLayout);
+    scrollArea->setWidget(scrollContent);
+    sidebarLayout->addWidget(scrollArea, 1);
 
-    // Status bar at bottom
+    // Bottom: Status bar
     m_statusLabel = new QLabel("Status: Initializing...", this);
-    m_statusLabel->setStyleSheet("padding: 10px; font-size: 11px;");
+    m_statusLabel->setStyleSheet("padding: 10px; font-size: 11px; border-top: 1px solid palette(mid);");
     m_statusLabel->setWordWrap(true);
-    m_statusLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken);
-    mainLayout->addWidget(m_statusLabel);
+    sidebarLayout->addWidget(m_statusLabel);
 
-    mainLayout->addStretch();
-
-    // Set initial mode
-    setUIMode(SimpleMode);
+    mainLayout->addWidget(sidebar, 0);  // No stretch, sizes to content
 }
 
-void MainWindow::onModeChanged(int index)
+void MainWindow::onTogglePreview(bool enabled)
 {
-    UIMode mode = static_cast<UIMode>(m_modeSelector->itemData(index).toInt());
-    setUIMode(mode);
-}
-
-void MainWindow::setUIMode(UIMode mode)
-{
-    m_currentMode = mode;
-
-    // Show/hide widgets based on mode
-    switch (mode) {
-        case SimpleMode:
-            m_trackingWidget->show();
-            m_ptzWidget->hide();
-            m_settingsWidget->hide();
-            break;
-
-        case AdvancedMode:
-            m_trackingWidget->show();
-            m_ptzWidget->show();
-            m_settingsWidget->hide();
-            break;
-
-        case ExpertMode:
-            m_trackingWidget->show();
-            m_ptzWidget->show();
-            m_settingsWidget->show();
-            break;
+    if (enabled) {
+        m_previewWidget->setVisible(true);
+        m_previewWidget->enablePreview(true);
+        m_previewToggleButton->setText("Hide Camera Preview");
+    } else {
+        m_previewWidget->enablePreview(false);
+        m_previewWidget->setVisible(false);
+        m_previewToggleButton->setText("Show Camera Preview");
     }
-
-    // Adjust window size
-    adjustSize();
 }
 
 void MainWindow::onCameraConnected(const CameraController::CameraInfo &info)
@@ -308,8 +302,8 @@ void MainWindow::changeEvent(QEvent *event)
     if (event->type() == QEvent::WindowStateChange) {
         // Disable preview when window is minimized
         if (windowState() & Qt::WindowMinimized) {
-            if (m_previewWidget && m_previewWidget->isPreviewEnabled()) {
-                m_previewWidget->enablePreview(false);
+            if (m_previewToggleButton->isChecked()) {
+                m_previewToggleButton->setChecked(false);
             }
         }
     }

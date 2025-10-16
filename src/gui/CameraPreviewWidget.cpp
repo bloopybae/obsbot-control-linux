@@ -11,7 +11,6 @@ CameraPreviewWidget::CameraPreviewWidget(QWidget *parent)
     , m_captureSession(nullptr)
     , m_videoWidget(nullptr)
     , m_toggleButton(nullptr)
-    , m_groupBox(nullptr)
     , m_previewEnabled(false)
 {
     setupUI();
@@ -25,28 +24,28 @@ CameraPreviewWidget::~CameraPreviewWidget()
 void CameraPreviewWidget::setupUI()
 {
     QVBoxLayout *layout = new QVBoxLayout(this);
-    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setContentsMargins(10, 10, 0, 10);  // No margin on right (sidebar border)
+    layout->setSpacing(10);
 
-    m_groupBox = new QGroupBox("Camera Preview", this);
-    QVBoxLayout *groupLayout = new QVBoxLayout(m_groupBox);
-
-    // Toggle button
+    // Toggle button at top
     QHBoxLayout *controlLayout = new QHBoxLayout();
-    m_toggleButton = new QPushButton("Enable Preview", this);
+    QLabel *titleLabel = new QLabel("Camera Preview", this);
+    titleLabel->setStyleSheet("font-weight: bold; font-size: 12pt;");
+    controlLayout->addWidget(titleLabel);
+    controlLayout->addStretch();
+
+    m_toggleButton = new QPushButton("Enable", this);
     m_toggleButton->setCheckable(true);
+    m_toggleButton->setMaximumWidth(100);
     connect(m_toggleButton, &QPushButton::clicked, this, &CameraPreviewWidget::onTogglePreview);
     controlLayout->addWidget(m_toggleButton);
-    controlLayout->addStretch();
-    groupLayout->addLayout(controlLayout);
+    layout->addLayout(controlLayout);
 
-    // Video widget
+    // Video widget fills remaining space
     m_videoWidget = new QVideoWidget(this);
-    m_videoWidget->setMinimumSize(320, 240);
     m_videoWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    m_videoWidget->setVisible(false);
-    groupLayout->addWidget(m_videoWidget);
-
-    layout->addWidget(m_groupBox);
+    m_videoWidget->setStyleSheet("background-color: black;");
+    layout->addWidget(m_videoWidget);
 }
 
 bool CameraPreviewWidget::isPreviewEnabled() const
@@ -117,9 +116,8 @@ void CameraPreviewWidget::startPreview()
     // Start camera
     m_camera->start();
 
-    m_videoWidget->setVisible(true);
     m_previewEnabled = true;
-    m_toggleButton->setText("Disable Preview");
+    m_toggleButton->setText("Disable");
 
     emit previewStateChanged(true);
 }
@@ -141,9 +139,8 @@ void CameraPreviewWidget::stopPreview()
         m_captureSession = nullptr;
     }
 
-    m_videoWidget->setVisible(false);
     m_previewEnabled = false;
-    m_toggleButton->setText("Enable Preview");
+    m_toggleButton->setText("Enable");
     m_toggleButton->setChecked(false);
 
     emit previewStateChanged(false);

@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QComboBox>
+#include <QPushButton>
 #include <QLabel>
 #include <QTimer>
 #include <QVBoxLayout>
@@ -15,37 +15,27 @@
 /**
  * @brief Main application window
  *
- * Orchestrates the UI and switches between three modes:
- * - Simple: Just face tracking on/off
- * - Advanced: + PTZ controls
- * - Expert: + All camera settings
+ * Shows all camera controls with optional collapsible preview drawer
  */
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    enum UIMode {
-        SimpleMode,      // Just AI on/off
-        AdvancedMode,    // + PTZ, zoom, focus
-        ExpertMode       // Everything
-    };
-
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
 private slots:
-    void onModeChanged(int mode);
     void onCameraConnected(const CameraController::CameraInfo &info);
     void onCameraDisconnected();
     void onStateChanged(const CameraController::CameraState &state);
     void onCommandFailed(const QString &description, int errorCode);
     void updateStatus();
     void onStateChangedSaveConfig();
+    void onTogglePreview(bool enabled);
 
 private:
     void setupUI();
-    void setUIMode(UIMode mode);
     void loadConfiguration();
     void handleConfigErrors(const std::vector<Config::ValidationError> &errors);
     CameraController::CameraState getUIState() const;  // Get current UI state
@@ -54,8 +44,7 @@ private:
     CameraController *m_controller;
 
     // UI
-    UIMode m_currentMode;
-    QComboBox *m_modeSelector;
+    QPushButton *m_previewToggleButton;
     QLabel *m_deviceInfoLabel;
     QLabel *m_statusLabel;
     QVBoxLayout *m_controlsLayout;
