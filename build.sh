@@ -163,9 +163,100 @@ offer_path_update() {
     fi
 }
 
+# Detect Linux distribution
+detect_distro() {
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        echo "$ID"
+    elif [ -f /etc/arch-release ]; then
+        echo "arch"
+    elif [ -f /etc/debian_version ]; then
+        echo "debian"
+    elif [ -f /etc/redhat-release ]; then
+        echo "rhel"
+    else
+        echo "unknown"
+    fi
+}
+
+# Get package install command for detected distro
+get_install_cmd() {
+    local package=$1
+    local distro=$(detect_distro)
+
+    case "$distro" in
+        arch|manjaro|endeavouros)
+            case "$package" in
+                cmake) echo "sudo pacman -S cmake" ;;
+                build-essential) echo "sudo pacman -S base-devel" ;;
+                pkg-config) echo "sudo pacman -S pkgconf" ;;
+                qt6-base-dev) echo "sudo pacman -S qt6-base" ;;
+                qt6-multimedia-dev) echo "sudo pacman -S qt6-multimedia" ;;
+                lsof) echo "sudo pacman -S lsof" ;;
+                *) echo "sudo pacman -S $package" ;;
+            esac
+            ;;
+        debian|ubuntu|mint|pop)
+            case "$package" in
+                *) echo "sudo apt install $package" ;;
+            esac
+            ;;
+        rhel|fedora|centos|rocky|almalinux)
+            case "$package" in
+                build-essential) echo "sudo dnf groupinstall 'Development Tools'" ;;
+                qt6-base-dev) echo "sudo dnf install qt6-qtbase-devel" ;;
+                qt6-multimedia-dev) echo "sudo dnf install qt6-qtmultimedia-devel" ;;
+                pkg-config) echo "sudo dnf install pkgconfig" ;;
+                *) echo "sudo dnf install $package" ;;
+            esac
+            ;;
+        *)
+            # Unknown distro - show all options
+            case "$package" in
+                cmake)
+                    echo "Arch: sudo pacman -S cmake | Debian/Ubuntu: sudo apt install cmake | Fedora: sudo dnf install cmake"
+                    ;;
+                build-essential)
+                    echo "Arch: sudo pacman -S base-devel | Debian/Ubuntu: sudo apt install build-essential | Fedora: sudo dnf groupinstall 'Development Tools'"
+                    ;;
+                pkg-config)
+                    echo "Arch: sudo pacman -S pkgconf | Debian/Ubuntu: sudo apt install pkg-config | Fedora: sudo dnf install pkgconfig"
+                    ;;
+                qt6-base-dev)
+                    echo "Arch: sudo pacman -S qt6-base | Debian/Ubuntu: sudo apt install qt6-base-dev | Fedora: sudo dnf install qt6-qtbase-devel"
+                    ;;
+                qt6-multimedia-dev)
+                    echo "Arch: sudo pacman -S qt6-multimedia | Debian/Ubuntu: sudo apt install qt6-multimedia-dev | Fedora: sudo dnf install qt6-qtmultimedia-devel"
+                    ;;
+                lsof)
+                    echo "Arch: sudo pacman -S lsof | Debian/Ubuntu: sudo apt install lsof | Fedora: sudo dnf install lsof"
+                    ;;
+                *)
+                    echo "Package: $package"
+                    ;;
+            esac
+            ;;
+    esac
+}
+
 # Check for build dependencies
 check_dependencies() {
+    local distro=$(detect_distro)
+    local distro_name=""
+
+    case "$distro" in
+        arch|manjaro|endeavouros) distro_name="Arch Linux" ;;
+        debian) distro_name="Debian" ;;
+        ubuntu) distro_name="Ubuntu" ;;
+        fedora) distro_name="Fedora" ;;
+        rhel|centos|rocky|almalinux) distro_name="Red Hat/CentOS" ;;
+        *) distro_name="Unknown" ;;
+    esac
+
     print_msg "$BLUE" "🔍 Checking build dependencies..."
+    if [ "$distro_name" != "Unknown" ]; then
+        print_msg "$BLUE" "Detected: $distro_name"
+    fi
     echo ""
 
     local all_ok=true
@@ -176,7 +267,7 @@ check_dependencies() {
         print_msg "$GREEN" "  ✓ CMake ($cmake_version)"
     else
         print_msg "$RED" "  ✗ CMake - NOT FOUND"
-        print_msg "$YELLOW" "    Install: sudo apt install cmake"
+        print_msg "$YELLOW" "    Install: $(get_install_cmd cmake)"
         all_ok=false
     fi
 
@@ -185,7 +276,7 @@ check_dependencies() {
         print_msg "$GREEN" "  ✓ Make"
     else
         print_msg "$RED" "  ✗ Make - NOT FOUND"
-        print_msg "$YELLOW" "    Install: sudo apt install build-essential"
+        print_msg "$YELLOW" "    Install: $(get_install_cmd build-essential)"
         all_ok=false
     fi
 
@@ -198,7 +289,7 @@ check_dependencies() {
         print_msg "$GREEN" "  ✓ C++ Compiler (clang++ $clang_version)"
     else
         print_msg "$RED" "  ✗ C++ Compiler - NOT FOUND"
-        print_msg "$YELLOW" "    Install: sudo apt install build-essential"
+        print_msg "$YELLOW" "    Install: $(get_install_cmd build-essential)"
         all_ok=false
     fi
 
@@ -207,7 +298,7 @@ check_dependencies() {
         print_msg "$GREEN" "  ✓ pkg-config"
     else
         print_msg "$RED" "  ✗ pkg-config - NOT FOUND"
-        print_msg "$YELLOW" "    Install: sudo apt install pkg-config"
+        print_msg "$YELLOW" "    Install: $(get_install_cmd pkg-config)"
         all_ok=false
     fi
 
@@ -217,7 +308,7 @@ check_dependencies() {
         print_msg "$GREEN" "  ✓ Qt6 Core ($qt6_version)"
     else
         print_msg "$RED" "  ✗ Qt6 Core - NOT FOUND"
-        print_msg "$YELLOW" "    Install: sudo apt install qt6-base-dev"
+        print_msg "$YELLOW" "    Install: $(get_install_cmd qt6-base-dev)"
         all_ok=false
     fi
 
@@ -226,7 +317,7 @@ check_dependencies() {
         print_msg "$GREEN" "  ✓ Qt6 Widgets"
     else
         print_msg "$RED" "  ✗ Qt6 Widgets - NOT FOUND"
-        print_msg "$YELLOW" "    Install: sudo apt install qt6-base-dev"
+        print_msg "$YELLOW" "    Install: $(get_install_cmd qt6-base-dev)"
         all_ok=false
     fi
 
@@ -235,7 +326,7 @@ check_dependencies() {
         print_msg "$GREEN" "  ✓ Qt6 Multimedia"
     else
         print_msg "$RED" "  ✗ Qt6 Multimedia - NOT FOUND"
-        print_msg "$YELLOW" "    Install: sudo apt install qt6-multimedia-dev"
+        print_msg "$YELLOW" "    Install: $(get_install_cmd qt6-multimedia-dev)"
         all_ok=false
     fi
 
@@ -247,7 +338,7 @@ check_dependencies() {
         print_msg "$GREEN" "  ✓ lsof (for camera usage detection)"
     else
         print_msg "$YELLOW" "  ⚠ lsof - NOT FOUND (optional, but recommended)"
-        print_msg "$BLUE" "    Install: sudo apt install lsof"
+        print_msg "$BLUE" "    Install: $(get_install_cmd lsof)"
     fi
 
     echo ""
