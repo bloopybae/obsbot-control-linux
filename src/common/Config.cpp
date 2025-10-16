@@ -382,7 +382,10 @@ bool Config::validateSettings(std::vector<ValidationError> &errors)
 
 bool Config::save()
 {
+    std::cout << "[Config] save() called, savingEnabled=" << m_savingEnabled << ", startMinimized=" << m_settings.startMinimized << std::endl;
+
     if (!m_savingEnabled) {
+        std::cout << "[Config] save() aborted - saving disabled" << std::endl;
         return false;
     }
 
@@ -474,6 +477,7 @@ bool Config::save()
     file << "start_minimized=" << (m_settings.startMinimized ? "enabled" : "disabled") << "\n";
 
     file.close();
+    std::cout << "[Config] Configuration saved successfully to " << configPath << std::endl;
     return true;
 }
 

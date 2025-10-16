@@ -413,7 +413,10 @@ void CameraController::applyCurrentStateToCamera(const CameraState &uiState)
 
 void CameraController::saveCurrentStateToConfig()
 {
-    Config::CameraSettings settings;
+    // Get current settings to preserve app settings (like startMinimized)
+    Config::CameraSettings settings = m_config.getSettings();
+
+    // Update only camera-related settings from current state
     settings.faceTracking = (m_currentState.aiMode != 0);
     settings.hdr = m_currentState.hdrEnabled;
     settings.fov = m_currentState.fovMode;

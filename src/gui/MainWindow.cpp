@@ -13,6 +13,7 @@
 #include <QMediaDevices>
 #include <QCameraDevice>
 #include <QCloseEvent>
+#include <iostream>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -123,7 +124,7 @@ void MainWindow::setupUI()
     sidebarLayout->addStretch();
 
     // Application settings
-    m_startMinimizedCheckbox = new QCheckBox("Start minimized to tray", this);
+    m_startMinimizedCheckbox = new QCheckBox("Launch minimized / Close to tray", this);
     m_startMinimizedCheckbox->setStyleSheet("padding: 5px; font-size: 11px;");
     connect(m_startMinimizedCheckbox, &QCheckBox::toggled, this, &MainWindow::onStartMinimizedToggled);
     sidebarLayout->addWidget(m_startMinimizedCheckbox);
@@ -308,8 +309,10 @@ void MainWindow::loadConfiguration()
     m_settingsWidget->setSaturation(settings.saturation);
     m_settingsWidget->setWhiteBalance(settings.whiteBalance);
 
-    // Application settings
+    // Application settings - block signals to prevent saving during initialization
+    m_startMinimizedCheckbox->blockSignals(true);
     m_startMinimizedCheckbox->setChecked(settings.startMinimized);
+    m_startMinimizedCheckbox->blockSignals(false);
 }
 
 void MainWindow::handleConfigErrors(const std::vector<Config::ValidationError> &errors)
@@ -634,8 +637,13 @@ void MainWindow::onQuitAction()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    // Minimize to tray instead of closing
-    if (m_trayIcon && m_trayIcon->isVisible()) {
+    // Check if we should minimize to tray or quit
+    auto settings = m_controller->getConfig().getSettings();
+    std::cout << "[MainWindow] closeEvent: startMinimized = " << settings.startMinimized << std::endl;
+
+    if (settings.startMinimized && m_trayIcon && m_trayIcon->isVisible()) {
+        std::cout << "[MainWindow] closeEvent: Minimizing to tray" << std::endl;
+        // Minimize to tray instead of closing
         // Save preview state
         m_previewStateBeforeMinimize = m_previewWidget->isPreviewEnabled();
 
@@ -662,15 +670,26 @@ void MainWindow::closeEvent(QCloseEvent *event)
             firstTime = false;
         }
     } else {
+        std::cout << "[MainWindow] closeEvent: Quitting application" << std::endl;
+        // Actually quit the application
+        // Save config before quitting
+        if (m_controller->isConnected()) {
+            m_controller->saveConfig();
+        }
         event->accept();
+        QApplication::quit();
     }
 }
 
 void MainWindow::onStartMinimizedToggled(bool checked)
 {
     // Update config and save
+    std::cout << "[MainWindow] Checkbox toggled to: " << checked << std::endl;
     auto settings = m_controller->getConfig().getSettings();
+    std::cout << "[MainWindow] Before: startMinimized = " << settings.startMinimized << std::endl;
     settings.startMinimized = checked;
     m_controller->getConfig().setSettings(settings);
-    m_controller->saveConfig();
+    std::cout << "[MainWindow] Calling saveConfig()..." << std::endl;
+    bool saved = m_controller->saveConfig();
+    std::cout << "[MainWindow] saveConfig() returned: " << saved << std::endl;
 }
