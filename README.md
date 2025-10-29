@@ -3,7 +3,7 @@
 A native Qt6 application for controlling OBSBOT cameras on Linux. Provides full camera control with an intuitive GUI while allowing simultaneous use with streaming/conferencing software.
 
 > **Acknowledgement**
-> This project started life as a fork of [aaronsb/obsbot-controls-qt-linux](https://github.com/aaronsb/obsbot-controls-qt-linux). Huge thanks to Aaron Beckelle and contributors for the original groundwork. The fork has since diverged and is now maintained here with a redesigned UI, improved preview flow, and ongoing updates.
+> This project started life as a fork of [aaronsb/obsbot-controls-qt-linux](https://github.com/aaronsb/obsbot-controls-qt-linux). Huge thanks to Aaron Bockelie and contributors for the original groundwork. The fork has since diverged and is now maintained here with a redesigned UI, improved preview flow, and ongoing updates.
 
 **Primary testing**: OBSBOT Tiny 2 Lite 4K (Fully supported, including AI tracking features)
 ## Screenshots
