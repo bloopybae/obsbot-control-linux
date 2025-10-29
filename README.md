@@ -2,6 +2,9 @@
 
 A native Qt6 application for controlling OBSBOT cameras on Linux. Provides full camera control with an intuitive GUI while allowing simultaneous use with streaming/conferencing software.
 
+> **Acknowledgement**
+> This project started life as a fork of [aaronsb/obsbot-controls-qt-linux](https://github.com/aaronsb/obsbot-controls-qt-linux). Huge thanks to Aaron Beckelle and contributors for the original groundwork. The fork has since diverged and is now maintained here with a redesigned UI, improved preview flow, and ongoing updates.
+
 **Primary testing**: OBSBOT Meet 2
 **Also works with**: OBSBOT Tiny 4K (partial feature support - see [Compatibility](#compatibility))
 
@@ -29,7 +32,7 @@ A native Qt6 application for controlling OBSBOT cameras on Linux. Provides full 
 - **Camera Preview** - Real-time video preview with automatic aspect ratio detection
 - **Usage Detection** - Warns when camera is in use by other applications (Chrome, OBS, Zoom)
 - **Resource Management** - Automatically releases camera when not needed
-- **Intelligent Layout** - Window expands only when preview successfully opens
+- **Detachable Window** - Pop-out preview with seamless reattachment and auto-resizing
 
 ### System Integration
 - **System Tray** - Minimize to tray, click to restore
@@ -78,7 +81,7 @@ This application was developed and tested primarily with the **OBSBOT Meet 2**, 
 ### Other Models
 Other OBSBOT cameras may work with varying degrees of functionality. The SDK supports multiple product types (Tiny, Tiny 2, Tail Air, Me, etc.), but testing is needed.
 
-**Have another model?** Please [open an issue](https://github.com/aaronsb/obsbot-controls-qt-linux/issues) to report compatibility!
+**Have another model?** Please [open an issue](https://github.com/zoegates/obsbot-controls-qt-linux/issues) to report compatibility!
 
 ## Requirements
 
@@ -105,7 +108,7 @@ Other OBSBOT cameras may work with varying degrees of functionality. The SDK sup
 For the adventurous, a single command that clones the repo to `~/src/obsbot-controls-qt-linux` and builds/installs:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/aaronsb/obsbot-controls-qt-linux/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/zoegates/obsbot-controls-qt-linux/main/install.sh | bash
 ```
 
 ⚠️ **What this does:**
@@ -120,7 +123,7 @@ If you prefer to review the code first (recommended):
 
 ```bash
 # Clone and build
-git clone https://github.com/aaronsb/obsbot-controls-qt-linux.git
+git clone https://github.com/zoegates/obsbot-controls-qt-linux.git
 cd obsbot-controls-qt-linux
 ./build.sh install --confirm
 ```
