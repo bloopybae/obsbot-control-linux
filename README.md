@@ -46,7 +46,7 @@ A native Qt6 application for controlling OBSBOT cameras on Linux. Provides full 
 
 OBSBOT cameras have excellent Linux UVC support, but lack native control software. This application:
 
-1. **Simultaneous Use** - Control camera settings while OBS/Chrome streams video
+1. **Simultaneous Use** - Control camera settings while OBS streams video
 2. **Resource Friendly** - Releases camera when minimized/hidden
 3. **Native Performance** - Qt6 application, not Electron
 4. **Standard Compliance** - Uses XDG config directories, system tray
@@ -58,7 +58,7 @@ OBSBOT cameras have excellent Linux UVC support, but lack native control softwar
 ### Other Models
 Other OBSBOT cameras may work with varying degrees of functionality. The SDK supports multiple product types (Tiny, Tiny 2, Tail Air, Me, etc.), but testing is needed.
 
-**Have another model?** Please [open an issue](https://github.com/bloopybae/obsbot-controls-qt-linux/issues) to report compatibility!
+**Have another model?** Please [open an issue](https://github.com/bloopybae/obsbot-control-linux/issues) to report compatibility!
 
 ## Requirements
 
@@ -82,14 +82,14 @@ Other OBSBOT cameras may work with varying degrees of functionality. The SDK sup
 
 ### One-Line Install
 
-For the adventurous, a single command that clones the repo to `~/src/obsbot-controls-qt-linux` and builds/installs:
+For the adventurous, a single command that clones the repo to `~/src/obsbot-control-linux` and builds/installs:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/bloopybae/obsbot-controls-qt-linux/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/bloopybae/obsbot-control-linux/main/install.sh | bash
 ```
 
 ⚠️ **What this does:**
-- Clones repository to `~/src/obsbot-controls-qt-linux`
+- Clones repository to `~/src/obsbot-control-linux`
 - Checks dependencies (shows what to install if missing)
 - Builds and installs the application
 - Adds desktop launcher to your app menu
@@ -100,7 +100,7 @@ If you prefer to review the code first (recommended):
 
 ```bash
 # Clone and build
-git clone https://github.com/bloopybae/obsbot-controls-qt-linux.git
+git clone https://github.com/bloopybae/obsbot-control-linux.git
 cd obsbot-controls-qt-linux
 ./build.sh install --confirm
 ```
