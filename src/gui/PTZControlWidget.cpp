@@ -120,10 +120,10 @@ PTZControlWidget::PTZControlWidget(CameraController *controller, QWidget *parent
     layout->addWidget(groupBox);
     layout->addStretch();
 }
-
+// 1.0 moves Tiny Lite 4K too much for fine control; updated to .05 to give finer control of PTZ adjustments
 void PTZControlWidget::onPanLeftClicked()
 {
-    m_controller->adjustPan(-0.1);
+    m_controller->adjustPan(-0.05);
     auto state = m_controller->getCurrentState();
     m_positionLabel->setText(QString("Position: Pan %1, Tilt %2")
         .arg(state.pan, 0, 'f', 2)
@@ -132,7 +132,7 @@ void PTZControlWidget::onPanLeftClicked()
 
 void PTZControlWidget::onPanRightClicked()
 {
-    m_controller->adjustPan(0.1);
+    m_controller->adjustPan(0.05);
     auto state = m_controller->getCurrentState();
     m_positionLabel->setText(QString("Position: Pan %1, Tilt %2")
         .arg(state.pan, 0, 'f', 2)
@@ -141,7 +141,7 @@ void PTZControlWidget::onPanRightClicked()
 
 void PTZControlWidget::onTiltUpClicked()
 {
-    m_controller->adjustTilt(0.1);
+    m_controller->adjustTilt(0.05);
     auto state = m_controller->getCurrentState();
     m_positionLabel->setText(QString("Position: Pan %1, Tilt %2")
         .arg(state.pan, 0, 'f', 2)
@@ -150,7 +150,7 @@ void PTZControlWidget::onTiltUpClicked()
 
 void PTZControlWidget::onTiltDownClicked()
 {
-    m_controller->adjustTilt(-0.1);
+    m_controller->adjustTilt(-0.05);
     auto state = m_controller->getCurrentState();
     m_positionLabel->setText(QString("Position: Pan %1, Tilt %2")
         .arg(state.pan, 0, 'f', 2)
