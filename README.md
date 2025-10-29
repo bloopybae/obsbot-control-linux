@@ -30,6 +30,12 @@ A native Qt6 application for controlling OBSBOT cameras on Linux. Provides full 
 - **Resource Management** - Automatically releases camera when not needed
 - **Detachable Window** - Pop-out preview with seamless reattachment and auto-resizing
 
+### Virtual Camera Output *(Experimental)*
+- **Loopback Device** - Mirror the live preview into a v4l2loopback virtual camera (default `/dev/video42`)
+- **One Camera, Many Apps** - Use OBSBOT preview inside OBS, Zoom, etc. while controlling settings here
+- **In-App Controls** - Toggle output and select the device path directly from the GUI
+- **Graceful Failure Handling** - Instant feedback if the virtual device is missing or unreachable
+
 ### System Integration
 - **System Tray** - Minimize to tray, click to restore
 - **Start Minimized** - Optional startup directly to system tray
@@ -77,6 +83,7 @@ Other OBSBOT cameras may work with varying degrees of functionality. The SDK sup
 - Qt6 libraries
 - V4L2 (Video4Linux2) support
 - `lsof` for camera usage detection (optional but recommended)
+- `v4l2loopback` kernel module for virtual camera output (optional)
 
 ## Quick Start
 
@@ -142,6 +149,16 @@ The build script automatically:
 - Right-click tray icon for menu
 - Enable **"Start minimized to tray"** checkbox for startup behavior
 
+### Virtual Camera
+1. Install the v4l2loopback kernel module and utilities (see [Virtual Camera Setup](#virtual-camera-setup-linux)).
+2. Load the module, e.g.:
+   ```bash
+   sudo modprobe v4l2loopback video_nr=42 card_label="OBSBOT Virtual Camera" exclusive_caps=1
+   ```
+3. Launch OBSBOT Control and enable the **"Virtual Camera"** option in the sidebar.
+4. Leave the live preview running. The frames are mirrored to the chosen loopback device so other applications can select it.
+5. Change the device path if you picked a different `video_nr` when loading the module.
+
 
 ## Configuration
 
@@ -154,6 +171,37 @@ Settings are stored in: `~/.config/obsbot-control/settings.conf`
 - Zoom: `1.0` to `2.0`
 - Pan/Tilt: `-1.0` to `1.0` (0 is center)
 - Brightness/Contrast/Saturation: `0` to `255`
+- Virtual camera: `virtual_camera_enabled=enabled|disabled`, `virtual_camera_device=/dev/video42`
+
+## Virtual Camera Setup (Linux)
+
+### Install the Kernel Module
+
+#### Arch Linux / Manjaro
+```bash
+sudo pacman -S v4l2loopback-dkms v4l-utils
+```
+
+Ensure the matching kernel headers are installed (e.g. `linux-headers`).
+
+### Load the Loopback Device
+
+```bash
+sudo modprobe v4l2loopback video_nr=42 card_label="OBSBOT Virtual Camera" exclusive_caps=1
+```
+
+- `video_nr=42` creates `/dev/video42` (match the default device path in the app).
+- `exclusive_caps=1` enables compatibility with apps that expect camera controls.
+
+To make this persistent, add the options to `/etc/modprobe.d/v4l2loopback.conf` and enable the module in `/etc/modules-load.d/`.
+
+### Verify
+
+```bash
+v4l2-ctl --list-devices
+```
+
+You should see `OBSBOT Virtual Camera` listed. Select this camera in your conferencing or streaming software while the OBSBOT Control preview is active.
 
 ## Technical Details
 
