@@ -9,7 +9,7 @@ A native Qt6 application for controlling OBSBOT cameras on Linux. Provides full 
 ## Screenshots
 
 <p align="center">
-  <img src="docs/media/Screenshot.png" alt="Main Application Interface" width="300"/>
+  <img src="docs/media/Screenshot.png" alt="Main Application Interface" width="600"/>
 </p>
 
 
