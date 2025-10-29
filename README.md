@@ -5,17 +5,13 @@ A native Qt6 application for controlling OBSBOT cameras on Linux. Provides full 
 > **Acknowledgement**
 > This project started life as a fork of [aaronsb/obsbot-controls-qt-linux](https://github.com/aaronsb/obsbot-controls-qt-linux). Huge thanks to Aaron Beckelle and contributors for the original groundwork. The fork has since diverged and is now maintained here with a redesigned UI, improved preview flow, and ongoing updates.
 
-**Primary testing**: OBSBOT Meet 2
-**Also works with**: OBSBOT Tiny 4K (partial feature support - see [Compatibility](#compatibility))
-
+**Primary testing**: OBSBOT Tiny 2 Lite 4K (Fully supported, including AI tracking features)
 ## Screenshots
 
 <p align="center">
-  <img src="docs/media/Screenshot_20251016_084333.png" alt="Main Application Interface" width="300"/>
-  <img src="docs/media/Screenshot_20251016_084456.png" alt="Camera Preview with Face Tracking" width="600"/>
+  <img src="docs/media/Screenshot.png" alt="Main Application Interface" width="300"/>
 </p>
 
-*Left: Main control interface with PTZ controls, auto-framing, and advanced settings. Right: Live preview showing face tracking in action.*
 
 ## Features
 
@@ -55,33 +51,14 @@ OBSBOT cameras have excellent Linux UVC support, but lack native control softwar
 3. **Native Performance** - Qt6 application, not Electron
 4. **Standard Compliance** - Uses XDG config directories, system tray
 
-## Compatibility
+### OBSBOT Tiny 2 Lite 4K ✅
 
-This application was developed and tested primarily with the **OBSBOT Meet 2**, but has been reported to work with other OBSBOT models with varying feature support.
-
-### OBSBOT Meet 2 ✅
 - **Fully tested** - All features supported
-- PTZ controls, Auto-Framing, HDR, Face AE/Focus, all image controls
-
-### OBSBOT Tiny 4K ⚠️
-**What works:**
-- ✅ PTZ controls (Pan, Tilt, Zoom)
-- ✅ HDR
-- ✅ Manual image controls (Brightness, Contrast, Saturation)
-- ✅ White Balance
-
-**What doesn't work:**
-- ❌ Auto-Framing (can be enabled via camera gestures, but not from app)
-- ❌ Face-based Auto Exposure
-- ❌ Face-based Auto Focus (works via Cameractrl though)
-- ❌ Auto image controls
-
-*Tested and reported by: [samdark](https://github.com/aaronsb/obsbot-controls-qt-linux/issues/7)*
 
 ### Other Models
 Other OBSBOT cameras may work with varying degrees of functionality. The SDK supports multiple product types (Tiny, Tiny 2, Tail Air, Me, etc.), but testing is needed.
 
-**Have another model?** Please [open an issue](https://github.com/zoegates/obsbot-controls-qt-linux/issues) to report compatibility!
+**Have another model?** Please [open an issue](https://github.com/bloopybae/obsbot-controls-qt-linux/issues) to report compatibility!
 
 ## Requirements
 
@@ -108,7 +85,7 @@ Other OBSBOT cameras may work with varying degrees of functionality. The SDK sup
 For the adventurous, a single command that clones the repo to `~/src/obsbot-controls-qt-linux` and builds/installs:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zoegates/obsbot-controls-qt-linux/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/bloopybae/obsbot-controls-qt-linux/main/install.sh | bash
 ```
 
 ⚠️ **What this does:**
@@ -123,7 +100,7 @@ If you prefer to review the code first (recommended):
 
 ```bash
 # Clone and build
-git clone https://github.com/zoegates/obsbot-controls-qt-linux.git
+git clone https://github.com/bloopybae/obsbot-controls-qt-linux.git
 cd obsbot-controls-qt-linux
 ./build.sh install --confirm
 ```
@@ -158,7 +135,6 @@ The build script automatically:
 - Click **"Show Camera Preview"** to enable live preview
 - If another app is using the camera, you'll see a warning with the process name
 - Close the blocking application and try again
-- Preview automatically disabled when window is hidden/minimized
 
 ### System Tray
 - Click **X** button to minimize to tray (doesn't quit)
@@ -166,44 +142,11 @@ The build script automatically:
 - Right-click tray icon for menu
 - Enable **"Start minimized to tray"** checkbox for startup behavior
 
-### Workflow Example
-Perfect for streaming/conferencing:
-
-1. Start app (optionally minimized to tray)
-2. Open OBS and select your OBSBOT camera as video source
-3. Click tray icon to show control window
-4. Adjust zoom, framing, brightness during stream
-5. Hide window to tray when not needed
-6. Camera remains available to OBS the entire time
 
 ## Configuration
 
 Settings are stored in: `~/.config/obsbot-control/settings.conf`
 
-### Configuration Format
-```ini
-# Camera Settings
-face_tracking=enabled
-hdr=disabled
-fov=wide
-face_ae=enabled
-face_focus=enabled
-zoom=1.0
-pan=0.0
-tilt=0.0
-
-# Image Controls
-brightness_auto=enabled
-brightness=128
-contrast_auto=enabled
-contrast=128
-saturation_auto=enabled
-saturation=128
-white_balance=auto
-
-# Application Settings
-start_minimized=disabled
-```
 
 ### Manual Editing
 - Boolean values: `enabled`/`disabled`, `true`/`false`, `yes`/`no`, `1`/`0`
@@ -269,16 +212,6 @@ When window is shown/restored:
 - Check Qt6 platform plugin: `export QT_QPA_PLATFORMTHEME=qt6ct`
 - Some minimal window managers lack system tray
 
-## Command Line Interface
-
-A CLI tool is also included for automation/scripting:
-
-```bash
-./obsbot-cli
-```
-
-See CLI help for available commands.
-
 ## Project Structure
 
 ```
@@ -294,16 +227,10 @@ obsbot-controls-qt-linux/
 
 ## Contributing
 
-This is a personal project but contributions are welcome:
 - Bug reports and feature requests: Open an issue
 - Pull requests: Please discuss major changes first
 - Code style: Follow existing Qt/C++ conventions
 
-## Credits
-
-- OBSBOT for creating excellent Linux-compatible cameras and providing the SDK
-- Qt Project for the excellent framework
-- Linux community for V4L2 support
 
 ## License
 
@@ -324,7 +251,3 @@ This project extends that foundation into a full-featured graphical application,
 no warranty about compatibility or support from OBSBOT.
 
 ---
-
-**Made with ❤️ for the Linux community**
-
-*Because Linux users deserve native camera control too.*
