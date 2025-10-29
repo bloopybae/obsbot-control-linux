@@ -18,8 +18,7 @@ The fastest way to get started:
 
 ```bash
 # Clone the repository
-git clone https://github.com/aaronsb/obsbot-controls-qt-linux.git
-cd obsbot-controls-qt-linux
+cd obsbot-control-linux
 
 # Build and install with the automated script
 ./build.sh install --confirm
