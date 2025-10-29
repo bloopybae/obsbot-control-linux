@@ -30,7 +30,7 @@ A native Qt6 application for controlling OBSBOT cameras on Linux. Provides full 
 - **Resource Management** - Automatically releases camera when not needed
 - **Detachable Window** - Pop-out preview with seamless reattachment and auto-resizing
 
-### Virtual Camera Output *(Experimental)*
+### Virtual Camera Output
 - **Loopback Device** - Mirror the live preview into a v4l2loopback virtual camera (default `/dev/video42`)
 - **One Camera, Many Apps** - Use OBSBOT preview inside OBS, Zoom, etc. while controlling settings here
 - **In-App Controls** - Toggle output and select the device path directly from the GUI
