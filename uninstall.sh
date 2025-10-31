@@ -45,7 +45,6 @@ show_usage() {
     echo -e "${YELLOW}What it does:${NC}"
     echo -e "  Removes OBSBOT Control files from your system:"
     echo -e "  - ${BLUE}$INSTALL_DIR/obsbot-gui${NC}"
-    echo -e "  - ${BLUE}$INSTALL_DIR/obsbot-cli${NC}"
     echo -e "  - ${BLUE}$DESKTOP_DIR/obsbot-control.desktop${NC}"
     echo -e "  - ${BLUE}$ICON_DIR/obsbot-control.svg${NC}"
     echo -e "  - ${BLUE}$CONFIG_DIR/settings.conf${NC}"
@@ -96,13 +95,6 @@ do_uninstall() {
 
     # Remove GUI binary
     if remove_file "$INSTALL_DIR/obsbot-gui" "GUI application"; then
-        removed=$((removed + 1))
-    else
-        not_found=$((not_found + 1))
-    fi
-
-    # Remove CLI binary
-    if remove_file "$INSTALL_DIR/obsbot-cli" "CLI tool"; then
         removed=$((removed + 1))
     else
         not_found=$((not_found + 1))
@@ -186,7 +178,6 @@ main() {
 
         files=(
             "$INSTALL_DIR/obsbot-gui:GUI application"
-            "$INSTALL_DIR/obsbot-cli:CLI tool"
             "$DESKTOP_DIR/obsbot-control.desktop:Desktop launcher"
             "$ICON_DIR/obsbot-control.svg:Application icon"
             "$CONFIG_DIR/settings.conf:Configuration file"

@@ -4,7 +4,7 @@ Thanks for helping push Linux support for OBSBOT hardware forward! This guide ex
 
 ## Before you start
 - Read the architecture notes in `docs/adr/001-application-architecture.md`.
-- Build the project locally with `./build.sh install --confirm` and confirm both the GUI and CLI run.
+- Build the project locally with `./build.sh install --confirm` and verify the GUI runs. Enable the developer CLI with `./build.sh build --with-cli --confirm` if you need it for testing.
 - Format code to match the surrounding C++ style (Qt signal/slot patterns, brace placement, etc.).
 - Every new behavior should have manual test notes or automated coverage where practical.
 
@@ -22,7 +22,7 @@ Key classes:
 - `Config` (`src/common/Config.*`): owns persisted settings and validation.
 - `CameraController` (`src/gui/CameraController.*`): wraps SDK commands with caching, debounce and error handling.
 - `CameraSettingsWidget`, `PTZControlWidget`, `TrackingControlWidget`: UI surfaces for specific control groups.
-- CLI entry point (`src/cli/meet2_test.cpp`): loads config, applies settings, or runs an interactive menu.
+- CLI entry point (`src/cli/meet2_test.cpp`): developer-only tool that loads config, applies settings, or runs an interactive menu.
 
 ## Adding a new camera control (example workflow)
 
@@ -42,7 +42,7 @@ Key classes:
    - Create the control, connect signals, and respect the debounce timer pattern (`m_commandTimer` + `m_userInitiated` flags).
    - Populate initial values in `loadConfiguration()` (MainWindow) and push user changes into `CameraController`.
 
-4. **CLI support (optional but encouraged)**
+4. **CLI support (optional for developer tooling)**
    - Expose the setting inside `applyConfigToCamera()` in `src/cli/meet2_test.cpp`.
    - Update any interactive prompts if the feature should be togglable via CLI.
 
@@ -54,7 +54,7 @@ Key classes:
    - Build the project (`cmake --build build -j"$(nproc)"`).
    - Exercise the new widget in the GUI; confirm state persists across reconnects.
    - Validate config save/load with both default and custom values.
-   - Run the CLI in both one-shot and `--interactive` modes if modified.
+   - Run the CLI in both one-shot and `--interactive` modes if you modified developer tooling.
 
 ## Submitting changes
 - Keep commits focused; split refactors and feature work if possible.

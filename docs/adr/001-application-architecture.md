@@ -6,7 +6,7 @@
 
 ## Context
 
-We are building control applications (GUI and CLI) for the OBSBOT Meet 2 camera using the official OBSBOT SDK. The camera requires specific command sequences, has transitional states, and supports numerous control parameters. We need an architecture that:
+We are building a GUI-first control application with an accompanying developer CLI for the OBSBOT Meet 2 camera using the official OBSBOT SDK. The camera requires specific command sequences, has transitional states, and supports numerous control parameters. We need an architecture that:
 
 1. Provides responsive UI despite camera command latency
 2. Maintains consistent state between applications
@@ -29,7 +29,7 @@ src/
 │   ├── TrackingControlWidget.*
 │   ├── PTZControlWidget.*
 │   └── CameraSettingsWidget.*
-└── cli/             # CLI application
+└── cli/             # Developer CLI application
     └── meet2_test.cpp
 ```
 
@@ -88,7 +88,7 @@ CameraState m_cachedState;  // Returned during settling
 
 **Rationale:** Reduces cognitive load for basic users while providing full control for advanced users.
 
-### 5. CLI Design: Non-Interactive by Default
+### 5. Developer CLI Design: Non-Interactive by Default
 
 **Default behavior:** Load config → Apply to camera → Exit
 **Interactive mode:** `-i` flag enables menu-driven control

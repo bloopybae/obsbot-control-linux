@@ -1,6 +1,6 @@
 # Build & Install OBSBOT Control
 
-Step-by-step guide for getting the GUI and CLI running on your Linux machine.
+Step-by-step guide for getting the GUI running on your Linux machine.
 
 ## TL;DR (safe defaults)
 ```bash
@@ -53,9 +53,11 @@ sudo dnf install v4l2loopback v4l-utils   # optional
 Features:
 - Detects missing dependencies and prints distro-friendly install commands.
 - Keeps a dry-run mode (`./build.sh install`) so you see every action before confirming.
-- Installs the GUI (`obsbot-gui`) and optional CLI (`obsbot-cli`).
+- Installs the GUI (`obsbot-gui`) in `~/.local/bin`.
 - Adds `obsbot-control.desktop` and icon assets so the launcher shows up in your menu.
 - Offers to extend your PATH if `~/.local/bin` is missing.
+
+Need the developer CLI? Append `--with-cli` when running `./build.sh build` to compile `obsbot-cli` for local testing. The CLI stays in `bin/` and is not installed.
 
 ### Custom install location
 Set XDG paths before running the installer:
@@ -77,18 +79,18 @@ make -j"$(nproc)"
 Run straight from `build/`:
 ```bash
 ./obsbot-gui
-./obsbot-cli --help
 ```
 
 Manual install steps mirror what the script does:
 ```bash
 install -Dm755 obsbot-gui ~/.local/bin/obsbot-gui
-install -Dm755 obsbot-cli ~/.local/bin/obsbot-cli
 install -Dm644 ../obsbot-control.desktop ~/.local/share/applications/obsbot-control.desktop
 install -Dm644 ../resources/icons/camera.svg \
   ~/.local/share/icons/hicolor/scalable/apps/obsbot-control.svg
 update-desktop-database ~/.local/share/applications
 ```
+
+Want the developer CLI locally? Reconfigure with `cmake .. -DOBSBOT_BUILD_DEV_CLI=ON`, rebuild, and run `./obsbot-cli` directly from `build/`. We intentionally do not install it system-wide.
 
 ## Virtual camera setup
 The repo ships a systemd unit (`resources/systemd/obsbot-virtual-camera.service`) and modprobe config to keep the virtual camera consistent.
@@ -109,7 +111,7 @@ Removes binaries, desktop launcher, icon, and configuration (unless the config d
 
 Manual cleanup:
 ```bash
-rm -f ~/.local/bin/obsbot-{gui,cli}
+rm -f ~/.local/bin/obsbot-gui
 rm -f ~/.local/share/applications/obsbot-control.desktop
 rm -f ~/.local/share/icons/hicolor/scalable/apps/obsbot-control.svg
 rm -rf ~/.config/obsbot-control

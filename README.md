@@ -9,14 +9,14 @@ Modern Qt6 tools for OBSBOT cameras on Linux. Control every setting, keep the ca
 - **Preview when you want it**: Toggle the video preview, auto-detect conflicts, and release the device whenever the app hides or the preview stops.
 - **Virtual camera pipeline**: Optional v4l2loopback integration with packaged systemd unit so you can feed Zoom/Meet while tweaking settings live.
 - **GPU-powered filters**: GLSL color grading that applies to both preview and the virtual camera output.
-- **CLI + GUI duo**: Script camera profiles from the terminal or drive everything from the Qt interface.
+- **Fast configure**: Build/install script checks dependencies and keeps the GUI updated without extra packaging steps.
 - **XDG-native config**: Resilient config storage with validation, manual editing, and automatic state restoration on connect.
 
 ## Why This Fork
 Aaron’s original project proved the concept. This fork pushes further:
 - Broader OBSBOT SDK coverage, including Tiny 2 family quirks and Meet 2 extras.
 - Packaging/scripts tuned for day-to-day updates and local developer installs without external packaging systems.
-- Consistent UI/CLI architecture, modernized docs, and better defaults for GPU filters and virtual camera workflows.
+- Consistent architecture shared between the GUI and internal tooling, plus modernized docs and better defaults for GPU filters and virtual camera workflows.
 
 ## Supported Cameras
 - **OBSBOT Tiny 2 Family**: Fully verified.
@@ -36,7 +36,7 @@ cd obsbot-control-linux
 
 What the script handles:
 - Checks dependencies and prints distro-specific install commands.
-- Builds GUI + CLI binaries.
+- Builds the GUI binary (developer CLI optional).
 - Installs to `~/.local/bin`, adds desktop launcher/icon, and offers PATH updates.
 
 Common commands:
@@ -60,7 +60,7 @@ Prefer a manual build? Follow the steps in `docs/BUILD.md`.
 - `docs/BUILD.md` — dependency breakdown, distro-specific instructions, manual build flow, troubleshooting.
 - `docs/CONTRIBUTING.md` — patterns for adding new controls and working with the architecture.
 - `docs/ROADMAP.md` — current status, planned enhancements, and technical debt tracking.
-- `docs/adr/001-application-architecture.md` — architecture decisions for the GUI/CLI stack.
+- `docs/adr/001-application-architecture.md` — architecture decisions for the GUI and internal tooling.
 
 ## Contributing & Support
 - File bugs and feature ideas at `https://github.com/bloopybae/obsbot-control-linux/issues`.

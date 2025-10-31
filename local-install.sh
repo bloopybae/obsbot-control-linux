@@ -177,7 +177,7 @@ fi
 
 # Run the build script
 print_msg "$BLUE" "🔨 Starting build and installation..."
-print_msg "$YELLOW" "Note: You'll be prompted to optionally install the CLI tool"
+print_msg "$YELLOW" "Note: Only the GUI app is installed (developer CLI stays local if built)"
 echo ""
 
 # Give user a chance to cancel

@@ -65,34 +65,37 @@ target_link_libraries(obsbot-gui PRIVATE
     dev
 )
 
-# CLI Application
-add_executable(obsbot-cli
-    src/cli/meet2_test.cpp
-    src/common/Config.cpp
-    src/common/Config.h
-)
+option(OBSBOT_BUILD_DEV_CLI "Build the developer CLI tool (not installed)" OFF)
 
-target_include_directories(obsbot-cli PRIVATE
-    ${SDK_INCLUDE_DIR}
-    ${CMAKE_SOURCE_DIR}/src/common
-)
+if(OBSBOT_BUILD_DEV_CLI)
+    add_executable(obsbot-cli
+        src/cli/meet2_test.cpp
+        src/common/Config.cpp
+        src/common/Config.h
+    )
 
-target_link_directories(obsbot-cli PRIVATE
-    ${SDK_LIB_DIR}
-)
+    target_include_directories(obsbot-cli PRIVATE
+        ${SDK_INCLUDE_DIR}
+        ${CMAKE_SOURCE_DIR}/src/common
+    )
 
-target_link_libraries(obsbot-cli PRIVATE
-    dev
-)
+    target_link_directories(obsbot-cli PRIVATE
+        ${SDK_LIB_DIR}
+    )
+
+    target_link_libraries(obsbot-cli PRIVATE
+        dev
+    )
+
+    set_target_properties(obsbot-cli PROPERTIES
+        BUILD_RPATH "${SDK_LIB_DIR}"
+        INSTALL_RPATH "/usr/lib"
+    )
+endif()
 
 # Set RPATH for finding libdev.so
 # Build uses local SDK, install uses system library path
 set_target_properties(obsbot-gui PROPERTIES
-    BUILD_RPATH "${SDK_LIB_DIR}"
-    INSTALL_RPATH "/usr/lib"
-)
-
-set_target_properties(obsbot-cli PROPERTIES
     BUILD_RPATH "${SDK_LIB_DIR}"
     INSTALL_RPATH "/usr/lib"
 )

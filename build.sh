@@ -29,6 +29,7 @@ ICON_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/icons/hicolor/scalable/apps"
 BUILD_DIR="build"
 BIN_DIR="bin"
 PROJECT_NAME="obsbot"
+BUILD_DEV_CLI=false
 
 # Print colored message
 print_msg() {
@@ -42,7 +43,7 @@ show_usage() {
     echo -e "${GREEN}OBSBOT Control - Build Script${NC}"
     echo -e ""
     echo -e "${YELLOW}Usage:${NC}"
-    echo -e "  ./build.sh <command> [--confirm]"
+    echo -e "  ./build.sh <command> [--confirm] [--with-cli]"
     echo -e ""
     echo -e "${YELLOW}Commands:${NC}"
     echo -e "  ${BLUE}build${NC}"
@@ -51,8 +52,8 @@ show_usage() {
     echo -e "    What it does:"
     echo -e "    - Creates build/ directory if it doesn't exist"
     echo -e "    - Runs CMake to configure the project"
-    echo -e "    - Compiles both GUI and CLI applications"
-    echo -e "    - Binaries will be in bin/obsbot-gui and bin/obsbot-cli"
+    echo -e "    - Compiles the GUI application (CLI tool optional)"
+    echo -e "    - GUI binary will be in bin/obsbot-gui"
     echo -e ""
     echo -e "    ${YELLOW}Example:${NC} ./build.sh build --confirm"
     echo -e ""
@@ -61,8 +62,8 @@ show_usage() {
     echo -e ""
     echo -e "    What it does:"
     echo -e "    - Runs the build process (as above)"
-    echo -e "    - Copies binaries to ${INSTALL_DIR}"
-    echo -e "    - Makes them executable"
+    echo -e "    - Copies the GUI binary to ${INSTALL_DIR}"
+    echo -e "    - Makes it executable"
     echo -e "    - Installs desktop launcher (appears in your application menu)"
     echo -e "    - Installs application icon"
     echo -e "    - Checks if install directory is in your PATH"
@@ -82,11 +83,14 @@ show_usage() {
     echo -e "  ${BLUE}--confirm${NC}"
     echo -e "    Required flag to actually execute the command. Without this flag,"
     echo -e "    the script will only show what it would do without making changes."
+    echo -e "  ${BLUE}--with-cli${NC}"
+    echo -e "    Builds the developer CLI alongside the GUI. The CLI stays in bin/ for local testing."
     echo -e ""
     echo -e "${YELLOW}Notes:${NC}"
     echo -e "- Install directory: ${INSTALL_DIR}"
     echo -e "- Build directory: ${BUILD_DIR}"
     echo -e "- The script will prompt for confirmation before making PATH changes"
+    echo -e "- Use --with-cli to build the optional developer CLI"
     echo -e "- You can safely run commands without --confirm to see what will happen"
     echo -e ""
 }
@@ -395,7 +399,11 @@ do_build() {
     fi
 
     print_msg "$BLUE" "Running CMake..."
-    cmake ..
+    if [ "$BUILD_DEV_CLI" = true ]; then
+        cmake .. -DOBSBOT_BUILD_DEV_CLI=ON
+    else
+        cmake .. -DOBSBOT_BUILD_DEV_CLI=OFF
+    fi
 
     print_msg "$BLUE" "Compiling with $(nproc) cores..."
     make -j$(nproc)
@@ -405,7 +413,9 @@ do_build() {
     print_msg "$GREEN" "✓ Build complete!"
     print_msg "$NC" "\nBinaries are in:"
     print_msg "$BLUE" "  - $BIN_DIR/obsbot-gui (GUI application)"
-    print_msg "$BLUE" "  - $BIN_DIR/obsbot-cli (CLI tool)"
+    if [ -f "$BIN_DIR/obsbot-cli" ]; then
+        print_msg "$BLUE" "  - $BIN_DIR/obsbot-cli (developer CLI tool)"
+    fi
 }
 
 # Install the project
@@ -428,20 +438,6 @@ do_install() {
     chmod +x "$INSTALL_DIR/obsbot-gui"
 
     local installed_apps="  - obsbot-gui"
-
-    # Ask about CLI installation
-    echo ""
-    read -p "Install CLI tool as well? [y/N] " -n 1 -r
-    echo
-
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        print_msg "$BLUE" "Installing CLI tool..."
-        cp "$BIN_DIR/obsbot-cli" "$INSTALL_DIR/"
-        chmod +x "$INSTALL_DIR/obsbot-cli"
-        installed_apps="$installed_apps\n  - obsbot-cli"
-    else
-        print_msg "$YELLOW" "Skipping CLI installation."
-    fi
 
     # Install desktop launcher
     echo ""
@@ -473,6 +469,9 @@ do_install() {
         print_msg "$GREEN" "\n✓ $INSTALL_DIR is already in your PATH"
         print_msg "$NC" "You can run the applications from anywhere:"
         print_msg "$BLUE" "  obsbot-gui"
+        if [ -f "$BIN_DIR/obsbot-cli" ]; then
+            print_msg "$BLUE" "  (Developer CLI available in $BIN_DIR/obsbot-cli)"
+        fi
     fi
 
     print_msg "$BLUE" "\n==> Virtual camera support is available but not enabled"
@@ -501,10 +500,25 @@ main() {
     local command=$1
     local confirm=false
 
-    # Check for --confirm flag
-    if [ $# -gt 1 ] && [ "$2" == "--confirm" ]; then
-        confirm=true
-    fi
+    shift
+
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --confirm)
+                confirm=true
+                ;;
+            --with-cli)
+                BUILD_DEV_CLI=true
+                ;;
+            *)
+                print_msg "$RED" "Unknown option: $1"
+                echo ""
+                show_usage
+                exit 1
+                ;;
+        esac
+        shift
+    done
 
     case "$command" in
         build)
@@ -514,11 +528,18 @@ main() {
                 print_msg "$NC" "This will:"
                 print_msg "$BLUE" "  1. Create build/ directory"
                 print_msg "$BLUE" "  2. Run CMake to configure the project"
-                print_msg "$BLUE" "  3. Compile GUI and CLI applications"
-                print_msg "$BLUE" "  4. Place binaries in build/"
+                print_msg "$BLUE" "  3. Compile the GUI application"
+                if [ "$BUILD_DEV_CLI" = true ]; then
+                    print_msg "$BLUE" "     (Developer CLI enabled via --with-cli)"
+                fi
+                print_msg "$BLUE" "  4. Place binaries in $BIN_DIR/"
                 echo ""
+                local rerun="./build.sh build"
+                if [ "$BUILD_DEV_CLI" = true ]; then
+                    rerun="$rerun --with-cli"
+                fi
                 print_msg "$YELLOW" "To actually build, run:"
-                print_msg "$GREEN" "  ./build.sh build --confirm"
+                print_msg "$GREEN" "  $rerun --confirm"
                 exit 0
             fi
             do_build
@@ -531,15 +552,19 @@ main() {
                 print_msg "$NC" "This will:"
                 print_msg "$BLUE" "  1. Build the project (see: ./build.sh build)"
                 print_msg "$BLUE" "  2. Create $INSTALL_DIR if needed"
-                print_msg "$BLUE" "  3. Copy binaries to $INSTALL_DIR"
-                print_msg "$BLUE" "  4. Make binaries executable"
+                print_msg "$BLUE" "  3. Copy obsbot-gui to $INSTALL_DIR"
+                print_msg "$BLUE" "  4. Make obsbot-gui executable"
                 print_msg "$BLUE" "  5. Install desktop launcher to $DESKTOP_DIR"
                 print_msg "$BLUE" "  6. Install icon to $ICON_DIR"
                 print_msg "$BLUE" "  7. Check if $INSTALL_DIR is in PATH"
                 print_msg "$BLUE" "  8. Offer to add to PATH if needed (with your approval)"
                 echo ""
+                local rerun="./build.sh install"
+                if [ "$BUILD_DEV_CLI" = true ]; then
+                    rerun="$rerun --with-cli"
+                fi
                 print_msg "$YELLOW" "To actually install, run:"
-                print_msg "$GREEN" "  ./build.sh install --confirm"
+                print_msg "$GREEN" "  $rerun --confirm"
                 exit 0
             fi
             do_install
