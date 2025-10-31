@@ -60,6 +60,7 @@ private slots:
     void onVirtualCameraToggled(bool enabled);
     void onVirtualCameraDeviceEdited();
     void onVirtualCameraResolutionChanged(int index);
+    void onVirtualCameraSetupRequested();
     void onVirtualCameraError(const QString &message);
     void onVideoEffectsChanged(const FilterPreviewWidget::VideoEffectsSettings &settings);
 
@@ -104,6 +105,7 @@ private:
     QLineEdit *m_virtualCameraDeviceEdit;
     QComboBox *m_virtualCameraResolutionCombo;
     QLabel *m_virtualCameraStatusLabel;
+    QPushButton *m_virtualCameraSetupButton;
 
     // Control widgets
     TrackingControlWidget *m_trackingWidget;

@@ -59,6 +59,11 @@ Features:
 
 Need the developer CLI? Append `--with-cli` when running `./build.sh build` to compile `obsbot-cli` for local testing. The CLI stays in `bin/` and is not installed.
 
+### Releases
+- Tag commits with `vMAJOR.MINOR.PATCH` to trigger the GitHub Actions release workflow (`.github/workflows/release.yml`).
+- The workflow builds the project, packages an AppImage via `scripts/package-appimage.sh`, generates SHA256 signatures, and publishes everything to the GitHub Release page.
+- Release bundles include the virtual camera service templates consumed by the in-app setup wizard.
+
 ### Custom install location
 Set XDG paths before running the installer:
 ```bash
@@ -94,6 +99,12 @@ Want the developer CLI locally? Reconfigure with `cmake .. -DOBSBOT_BUILD_DEV_CL
 
 ## Virtual camera setup
 The repo ships a systemd unit (`resources/systemd/obsbot-virtual-camera.service`) and modprobe config to keep the virtual camera consistent.
+
+The GUI includes a **Set Up Virtual Camera** wizard that:
+- Loads the v4l2loopback module for the current session.
+- Installs/enables/disables the systemd service via PolicyKit (`pkexec`).
+- Removes the service again if you change your mind.
+You can still run the commands manually if you prefer full control; the wizard shows exactly what will be executed.
 
 ```bash
 sudo systemctl enable --now obsbot-virtual-camera.service

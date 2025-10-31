@@ -1,6 +1,7 @@
 #include "MainWindow.h"
 #include "PreviewWindow.h"
 #include "VirtualCameraStreamer.h"
+#include "VirtualCameraSetupDialog.h"
 
 #include <QMessageBox>
 #include <QWidget>
@@ -30,6 +31,7 @@
 #include <QPalette>
 #include <QList>
 #include <QFileInfo>
+#include <QStandardPaths>
 #include <iostream>
 #include <array>
 #include <algorithm>
@@ -134,6 +136,87 @@ QString modprobeCommandForDevice(const QString &devicePath)
         .arg(videoNr);
 }
 
+enum class ServiceInstallState {
+    NotInstalled,
+    InstalledDisabled,
+    EnabledRunning,
+    EnabledStopped,
+    Failed
+};
+
+QString runSystemctl(const QStringList &arguments, int *exitCode = nullptr)
+{
+    if (QStandardPaths::findExecutable(QStringLiteral("systemctl")).isEmpty()) {
+        if (exitCode) {
+            *exitCode = -1;
+        }
+        return QString();
+    }
+
+    QProcess process;
+    process.start(QStringLiteral("systemctl"), arguments);
+    process.waitForFinished(2000);
+
+    if (exitCode) {
+        *exitCode = process.exitCode();
+    }
+
+    if (process.exitStatus() != QProcess::NormalExit) {
+        return QString();
+    }
+
+    return QString::fromUtf8(process.readAllStandardOutput()).trimmed();
+}
+
+ServiceInstallState queryVirtualCameraServiceState()
+{
+    const QFileInfo serviceFile(QStringLiteral("/etc/systemd/system/obsbot-virtual-camera.service"));
+    if (!serviceFile.exists()) {
+        return ServiceInstallState::NotInstalled;
+    }
+
+    int exitCode = 0;
+    const QString enabledState = runSystemctl(
+        {QStringLiteral("--no-pager"), QStringLiteral("is-enabled"), QStringLiteral("obsbot-virtual-camera.service")},
+        &exitCode);
+
+    if (exitCode != 0) {
+        return ServiceInstallState::Failed;
+    }
+
+    const QString activeState = runSystemctl(
+        {QStringLiteral("--no-pager"), QStringLiteral("is-active"), QStringLiteral("obsbot-virtual-camera.service")},
+        &exitCode);
+
+    const bool enabled = enabledState == QStringLiteral("enabled");
+    const bool active = activeState == QStringLiteral("active");
+
+    if (enabled && active) {
+        return ServiceInstallState::EnabledRunning;
+    }
+    if (enabled && !active) {
+        return ServiceInstallState::EnabledStopped;
+    }
+    return ServiceInstallState::InstalledDisabled;
+}
+
+QString describeVirtualCameraServiceState(ServiceInstallState state)
+{
+    switch (state) {
+    case ServiceInstallState::NotInstalled:
+        return MainWindow::tr("Service: not installed");
+    case ServiceInstallState::InstalledDisabled:
+        return MainWindow::tr("Service: installed but disabled");
+    case ServiceInstallState::EnabledRunning:
+        return MainWindow::tr("Service: enabled and running");
+    case ServiceInstallState::EnabledStopped:
+        return MainWindow::tr("Service: enabled but not running");
+    case ServiceInstallState::Failed:
+    default:
+        return MainWindow::tr("Service: unable to query (systemctl unavailable)");
+    }
+}
+
 } // namespace
 
 MainWindow::MainWindow(QWidget *parent)
@@ -148,6 +231,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_virtualCameraDeviceEdit(nullptr)
     , m_virtualCameraResolutionCombo(nullptr)
     , m_virtualCameraStatusLabel(nullptr)
+    , m_virtualCameraSetupButton(nullptr)
     , m_effectsWidget(nullptr)
     , m_virtualCameraStreamer(nullptr)
     , m_isApplyingStyle(false)
@@ -390,6 +474,11 @@ void MainWindow::setupUI()
     m_virtualCameraStatusLabel->setWordWrap(true);
     m_virtualCameraStatusLabel->setObjectName("virtualCameraStatus");
     virtualLayout->addWidget(m_virtualCameraStatusLabel);
+
+    m_virtualCameraSetupButton = new QPushButton(tr("Set Up Virtual Camera"), virtualCameraGroup);
+    connect(m_virtualCameraSetupButton, &QPushButton::clicked,
+            this, &MainWindow::onVirtualCameraSetupRequested);
+    virtualLayout->addWidget(m_virtualCameraSetupButton, 0, Qt::AlignLeft);
 
     QHBoxLayout *virtualResolutionLayout = new QHBoxLayout();
     virtualResolutionLayout->setContentsMargins(0, 0, 0, 0);
@@ -1002,6 +1091,10 @@ void MainWindow::updateVirtualCameraAvailability(const QString &devicePath)
         m_virtualCameraAvailable = false;
     }
 
+    const ServiceInstallState serviceState = queryVirtualCameraServiceState();
+    statusText.append(QLatin1Char('\n')); 
+    statusText.append(describeVirtualCameraServiceState(serviceState));
+
     m_virtualCameraStatusLabel->setText(statusText);
     m_virtualCameraStatusLabel->setStyleSheet(QStringLiteral("color: %1;").arg(statusColor));
     if (m_virtualCameraCheckbox) {
@@ -1587,6 +1680,17 @@ void MainWindow::onVirtualCameraResolutionChanged(int index)
 
     m_virtualCameraErrorNotified = false;
     updateVirtualCameraStreamerState();
+}
+
+void MainWindow::onVirtualCameraSetupRequested()
+{
+    VirtualCameraSetupDialog dialog(currentVirtualCameraDevicePath(), this);
+    connect(&dialog, &VirtualCameraSetupDialog::serviceStateChanged, this, [this]() {
+        updateVirtualCameraAvailability(currentVirtualCameraDevicePath());
+        updateVirtualCameraStreamerState();
+    });
+    dialog.exec();
+    updateVirtualCameraAvailability(currentVirtualCameraDevicePath());
 }
 
 void MainWindow::onVirtualCameraError(const QString &message)

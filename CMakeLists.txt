@@ -41,6 +41,8 @@ add_executable(obsbot-gui
     src/gui/VideoEffectsWidget.h
     src/gui/VirtualCameraStreamer.cpp
     src/gui/VirtualCameraStreamer.h
+    src/gui/VirtualCameraSetupDialog.cpp
+    src/gui/VirtualCameraSetupDialog.h
     src/gui/PreviewWindow.cpp
     src/gui/PreviewWindow.h
     src/common/Config.cpp
@@ -99,3 +101,23 @@ set_target_properties(obsbot-gui PROPERTIES
     BUILD_RPATH "${SDK_LIB_DIR}"
     INSTALL_RPATH "/usr/lib"
 )
+
+install(TARGETS obsbot-gui
+    RUNTIME DESTINATION bin)
+
+install(FILES obsbot-control.desktop
+    DESTINATION share/applications)
+
+install(FILES resources/icons/camera.svg
+    DESTINATION share/icons/hicolor/scalable/apps
+    RENAME obsbot-control.svg)
+
+install(FILES resources/systemd/obsbot-virtual-camera.service
+    DESTINATION share/obsbot-control/systemd)
+
+install(FILES resources/modprobe.d/obsbot-virtual-camera.conf
+    DESTINATION share/obsbot-control/modprobe.d)
+
+install(FILES resources/scripts/obsbot-virtual-camera-setup.sh
+    PERMISSIONS OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+    DESTINATION share/obsbot-control/scripts)

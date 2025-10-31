@@ -7,7 +7,7 @@ Modern Qt6 tools for OBSBOT cameras on Linux. Control every setting, keep the ca
 ## Highlights
 - **Full PTZ + imaging control**: Auto-framing, HDR, FOV presets, face-aware exposure/focus, and manual sliders for brightness/contrast/saturation.
 - **Preview when you want it**: Toggle the video preview, auto-detect conflicts, and release the device whenever the app hides or the preview stops.
-- **Virtual camera pipeline**: Optional v4l2loopback integration with packaged systemd unit so you can feed Zoom/Meet while tweaking settings live.
+- **Virtual camera pipeline**: Optional v4l2loopback integration with a built-in setup wizard for enabling/disabling the service without touching the terminal.
 - **GPU-powered filters**: GLSL color grading that applies to both preview and the virtual camera output.
 - **Fast configure**: Build/install script checks dependencies and keeps the GUI updated without extra packaging steps.
 - **XDG-native config**: Resilient config storage with validation, manual editing, and automatic state restoration on connect.
@@ -54,6 +54,7 @@ Prefer a manual build? Follow the steps in `docs/BUILD.md`.
 - **Preview mode**: Click “Show camera preview.” If another process owns the device, the app lists it so you can free the camera. Preview auto-disables when the window hides.
 - **Filters**: Apply and tune GLSL color presets (Grayscale, Sepia, Invert, Warm, Cool) that immediately affect both preview and virtual camera output.
 - **Virtual camera**: Optional systemd unit and modprobe config ship with the repo. Enable the service or run `sudo modprobe v4l2loopback video_nr=42 card_label="OBSBOT Virtual Camera" exclusive_caps=1`, then toggle the virtual camera inside the app.
+- **Virtual camera**: Launch the “Set Up Virtual Camera” wizard for one-click install/enable/disable of the v4l2loopback service (uses PolicyKit). You can still copy the commands manually if you prefer.
 - **Tray workflow**: Closing the window drops it to the tray. Reopen, tweak mid-stream, hide again without stealing camera access from OBS/Chrome/Meet.
 
 ## Documentation
@@ -61,6 +62,11 @@ Prefer a manual build? Follow the steps in `docs/BUILD.md`.
 - `docs/CONTRIBUTING.md` — patterns for adding new controls and working with the architecture.
 - `docs/ROADMAP.md` — current status, planned enhancements, and technical debt tracking.
 - `docs/adr/001-application-architecture.md` — architecture decisions for the GUI and internal tooling.
+
+## Releases
+- Versioned with SemVer. Tag `vMAJOR.MINOR.PATCH` on `main` when you are ready to ship.
+- GitHub Actions (`.github/workflows/release.yml`) builds the project, packages an AppImage, generates checksums, and uploads artifacts to the tagged GitHub Release automatically.
+- Release assets include the virtual camera service templates so users can enable the feature through the app’s “Set Up Virtual Camera” wizard—no CLI required unless they prefer it.
 
 ## Contributing & Support
 - File bugs and feature ideas at `https://github.com/bloopybae/obsbot-control-linux/issues`.

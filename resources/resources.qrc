@@ -1,5 +1,8 @@
 <RCC>
     <qresource prefix="/">
         <file>icons/camera.svg</file>
+        <file alias="systemd/obsbot-virtual-camera.service">systemd/obsbot-virtual-camera.service</file>
+        <file alias="modprobe/obsbot-virtual-camera.conf">modprobe.d/obsbot-virtual-camera.conf</file>
+        <file alias="scripts/obsbot-virtual-camera-setup.sh">scripts/obsbot-virtual-camera-setup.sh</file>
     </qresource>
 </RCC>
