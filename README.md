@@ -62,6 +62,8 @@ Prefer a manual build? Follow the steps in `docs/BUILD.md`.
 - `docs/CONTRIBUTING.md` — patterns for adding new controls and working with the architecture.
 - `docs/ROADMAP.md` — current status, planned enhancements, and technical debt tracking.
 - `docs/adr/001-application-architecture.md` — architecture decisions for the GUI and internal tooling.
+- `docs/RELEASE.md` — step-by-step checklist for cutting and publishing new versions.
+- `docs/RELEASE_NOTES.md` — highlights for the latest release plus links to previous tags.
 
 ## Releases
 - Versioned with SemVer. Tag `vMAJOR.MINOR.PATCH` on `main` when you are ready to ship.
