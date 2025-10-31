@@ -32,7 +32,6 @@ fi
 
 LINUXDEPLOY="${BUILD_DIR}/linuxdeploy-x86_64.AppImage"
 LINUXDEPLOY_QT="${BUILD_DIR}/linuxdeploy-plugin-qt-x86_64.AppImage"
-LINUXDEPLOY_GSTREAMER="${BUILD_DIR}/linuxdeploy-plugin-gstreamer-x86_64.AppImage"
 
 if [[ ! -f "${LINUXDEPLOY}" ]]; then
     curl -L "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage" \
@@ -46,12 +45,6 @@ if [[ ! -f "${LINUXDEPLOY_QT}" ]]; then
     chmod +x "${LINUXDEPLOY_QT}"
 fi
 
-if [[ ! -f "${LINUXDEPLOY_GSTREAMER}" ]]; then
-    curl -L "https://github.com/linuxdeploy/linuxdeploy-plugin-gstreamer/releases/download/continuous/linuxdeploy-plugin-gstreamer-x86_64.AppImage" \
-        -o "${LINUXDEPLOY_GSTREAMER}"
-    chmod +x "${LINUXDEPLOY_GSTREAMER}"
-fi
-
 export APPIMAGE_EXTRACT_AND_RUN=1
 QMAKE_BIN="$(command -v qmake6 || command -v qmake || true)"
 
@@ -63,12 +56,8 @@ fi
 export PATH="$(dirname "${QMAKE_BIN}"):${PATH}"
 export QMAKE="${QMAKE_BIN}"
 export LD_LIBRARY_PATH="${PROJECT_ROOT}/sdk/lib:${APPDIR}/usr/lib:${LD_LIBRARY_PATH:-}"
-
-# Ensure linuxdeploy-plugin-gstreamer knows which GStreamer assets to bundle
-export DEPLOY_GSTREAMER_PLUGIN_DIRS="/usr/lib/x86_64-linux-gnu/gstreamer-1.0"
-export DEPLOY_GSTREAMER_PLUGINS="base;good"
-export DEPLOY_GSTREAMER_LIB_DIRS="/usr/lib/x86_64-linux-gnu"
 export GST_PLUGIN_SYSTEM_PATH="${APPDIR}/usr/lib/gstreamer-1.0"
+export GST_PLUGIN_SYSTEM_PATH_1_0="${APPDIR}/usr/lib/gstreamer-1.0"
 
 if ! ldconfig -p 2>/dev/null | grep -q 'libjxrglue\.so' && [[ ! -e /usr/lib/libjxrglue.so* ]]; then
     cat >&2 <<'EOF'
@@ -101,11 +90,62 @@ for module in "${QT_EXTRA_MODULES[@]}"; do
     fi
 done
 
+bundle_gstreamer_assets() {
+    local gst_lib_root="/usr/lib/x86_64-linux-gnu"
+    local gst_plugin_src="${gst_lib_root}/gstreamer-1.0"
+    local gst_plugin_dest="${APPDIR}/usr/lib/gstreamer-1.0"
+    local gst_lib_dest="${APPDIR}/usr/lib"
+    local qt_mediaservice_src="/usr/lib/x86_64-linux-gnu/qt6/plugins/mediaservice"
+    local qt_mediaservice_dest="${APPDIR}/usr/plugins/mediaservice"
+
+    mkdir -p "${gst_lib_dest}"
+
+    if [[ -d "${gst_plugin_src}" ]]; then
+        mkdir -p "${gst_plugin_dest}"
+        cp -a "${gst_plugin_src}/." "${gst_plugin_dest}/"
+    else
+        echo "warning: GStreamer plugin directory not found at ${gst_plugin_src}" >&2
+    fi
+
+    find "${gst_lib_root}" -maxdepth 1 -type f -name 'libgst*.so*' -exec cp -a {} "${gst_lib_dest}/" \;
+
+    local helper_libs=(
+        "liborc-0.4.so.0"
+        "libjpeg.so.8"
+        "libtheoradec.so.1"
+        "libtheoraenc.so.1"
+        "libogg.so.0"
+        "libvorbis.so.0"
+        "libvorbisenc.so.2"
+        "libva.so.2"
+        "libvpx.so.7"
+        "libx264.so.163"
+        "libx265.so.199"
+    )
+    for helper in "${helper_libs[@]}"; do
+        if [[ -f "${gst_lib_root}/${helper}" ]] && [[ ! -f "${gst_lib_dest}/${helper}" ]]; then
+            cp -a "${gst_lib_root}/${helper}" "${gst_lib_dest}/"
+        fi
+    done
+
+    if [[ -d "${qt_mediaservice_src}" ]]; then
+        mkdir -p "${qt_mediaservice_dest}"
+        cp -a "${qt_mediaservice_src}/." "${qt_mediaservice_dest}/"
+    else
+        echo "warning: Qt mediaservice plugins not found at ${qt_mediaservice_src}" >&2
+    fi
+
+    for lib in "${gst_lib_dest}"/libgst*.so* "${qt_mediaservice_dest}"/*.so; do
+        [[ -f "${lib}" ]] || continue
+        "${LINUXDEPLOY}" --appdir "${APPDIR}" --library "${lib}" >/dev/null
+    done
+}
+
 pushd "${BUILD_DIR}" >/dev/null
 rm -f obsbot-control-linux-*.AppImage
 
 "${LINUXDEPLOY_QT}" --appdir "${APPDIR}" "${QT_EXTRA_ARGS[@]}"
-"${LINUXDEPLOY_GSTREAMER}" --appdir "${APPDIR}"
+bundle_gstreamer_assets
 "${LINUXDEPLOY}" --appdir "${APPDIR}" \
     --desktop-file "${DESKTOP_FILE}" \
     --icon-file "${ICON_FILE}" \
