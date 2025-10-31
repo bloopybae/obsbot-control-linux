@@ -6,8 +6,28 @@
 #include <QVideoFrame>
 #include <QtMath>
 #include <cmath>
+#include <cstring>
 
 namespace {
+
+QImage verticalMirror(const QImage &image)
+{
+    if (image.isNull()) {
+        return image;
+    }
+
+    QImage mirrored(image.size(), image.format());
+    mirrored.setDevicePixelRatio(image.devicePixelRatio());
+
+    const int height = image.height();
+    const int bytesPerLine = image.bytesPerLine();
+
+    for (int y = 0; y < height; ++y) {
+        std::memcpy(mirrored.scanLine(height - 1 - y), image.constScanLine(y), bytesPerLine);
+    }
+
+    return mirrored;
+}
 
 const char *kVertexShaderSource = R"(#version 330 core
 layout(location = 0) in vec2 a_position;
@@ -269,7 +289,7 @@ void FilterPreviewWidget::paintGL()
                      GL_RGBA, GL_UNSIGNED_BYTE, output.bits());
         m_framebuffer->release();
 
-        emit processedFrameReady(output.flipped(Qt::Vertical));
+        emit processedFrameReady(verticalMirror(output));
         m_emitPending = false;
     }
 
@@ -382,7 +402,7 @@ void FilterPreviewWidget::uploadTextureIfNeeded()
         m_texture->bind();
     }
 
-    QImage glImage = m_currentImage.flipped(Qt::Vertical);
+    QImage glImage = verticalMirror(m_currentImage);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
                     frameSize.width(), frameSize.height(),
