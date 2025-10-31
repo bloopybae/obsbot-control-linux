@@ -32,6 +32,7 @@ fi
 
 LINUXDEPLOY="${BUILD_DIR}/linuxdeploy-x86_64.AppImage"
 LINUXDEPLOY_QT="${BUILD_DIR}/linuxdeploy-plugin-qt-x86_64.AppImage"
+LINUXDEPLOY_GSTREAMER="${BUILD_DIR}/linuxdeploy-plugin-gstreamer-x86_64.AppImage"
 
 if [[ ! -f "${LINUXDEPLOY}" ]]; then
     curl -L "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage" \
@@ -45,6 +46,12 @@ if [[ ! -f "${LINUXDEPLOY_QT}" ]]; then
     chmod +x "${LINUXDEPLOY_QT}"
 fi
 
+if [[ ! -f "${LINUXDEPLOY_GSTREAMER}" ]]; then
+    curl -L "https://github.com/linuxdeploy/linuxdeploy-plugin-gstreamer/releases/download/continuous/linuxdeploy-plugin-gstreamer-x86_64.AppImage" \
+        -o "${LINUXDEPLOY_GSTREAMER}"
+    chmod +x "${LINUXDEPLOY_GSTREAMER}"
+fi
+
 export APPIMAGE_EXTRACT_AND_RUN=1
 QMAKE_BIN="$(command -v qmake6 || command -v qmake || true)"
 
@@ -56,6 +63,12 @@ fi
 export PATH="$(dirname "${QMAKE_BIN}"):${PATH}"
 export QMAKE="${QMAKE_BIN}"
 export LD_LIBRARY_PATH="${PROJECT_ROOT}/sdk/lib:${APPDIR}/usr/lib:${LD_LIBRARY_PATH:-}"
+
+# Ensure linuxdeploy-plugin-gstreamer knows which GStreamer assets to bundle
+export DEPLOY_GSTREAMER_PLUGIN_DIRS="/usr/lib/x86_64-linux-gnu/gstreamer-1.0"
+export DEPLOY_GSTREAMER_PLUGINS="base;good"
+export DEPLOY_GSTREAMER_LIB_DIRS="/usr/lib/x86_64-linux-gnu"
+export GST_PLUGIN_SYSTEM_PATH="${APPDIR}/usr/lib/gstreamer-1.0"
 
 if ! ldconfig -p 2>/dev/null | grep -q 'libjxrglue\.so' && [[ ! -e /usr/lib/libjxrglue.so* ]]; then
     cat >&2 <<'EOF'
@@ -92,6 +105,7 @@ pushd "${BUILD_DIR}" >/dev/null
 rm -f obsbot-control-linux-*.AppImage
 
 "${LINUXDEPLOY_QT}" --appdir "${APPDIR}" "${QT_EXTRA_ARGS[@]}"
+"${LINUXDEPLOY_GSTREAMER}" --appdir "${APPDIR}"
 "${LINUXDEPLOY}" --appdir "${APPDIR}" \
     --desktop-file "${DESKTOP_FILE}" \
     --icon-file "${ICON_FILE}" \
