@@ -1,109 +1,40 @@
-# OBSBOT Control - Roadmap
+# OBSBOT Control Roadmap
 
-## Current Status
+Last updated: 2025-10-18
 
-### ✅ Completed Features
+## Recently shipped
+- ✅ GPU shader pipeline for preview + virtual camera.
+- ✅ Image controls (brightness/contrast/saturation/white balance) with manual + auto modes.
+- ✅ Virtual camera helper unit for v4l2loopback.
+- ✅ Config validator with recovery prompts (ignore/reset/retry).
+- ✅ CLI parity with GUI defaults, including interactive menu mode.
 
-- [x] CLI tool with interactive and non-interactive modes
-- [x] Qt6 GUI application with three UI complexity modes
-- [x] Face tracking control (two-step enable/disable)
-- [x] PTZ controls (pan/tilt/zoom with absolute positioning)
-- [x] Advanced camera settings (HDR, FOV, Face AE, Face Focus)
-- [x] XDG-compliant configuration system
-- [x] Config validation with error recovery
-- [x] Optimistic UI with debounce protection
-- [x] Settling period for initialization
-- [x] Theme-friendly UI (works with light/dark themes)
-- [x] Separation of concerns architecture
-- [x] Documentation (ADR-001)
+## Near-term focus
+1. **Multi-camera awareness**
+   - UI surfacing for multiple connected OBSBOT devices.
+   - Remember preferred device by serial number.
+2. **Preset management**
+   - Save/load named profiles.
+   - Optional auto-apply by workspace or app.
+3. **Better failure visibility**
+   - Toast/error panel for SDK command failures.
+   - Retry queue with backoff for flaky USB connections.
+4. **Tiny 2 feature parity**
+   - LED brightness, microphone distance, and gesture toggles exposed in the GUI.
 
-### 🚧 In Progress
+## Stretch goals
+- Recording-friendly preview (no exclusive camera access) using gstreamer pipeline.
+- D-Bus bridge for scripting and desktop integration.
+- Web remote control with WebRTC preview.
+- Continuous integration builds for main distros.
 
-- [ ] Image controls (brightness, contrast, saturation, white balance)
-  - [x] Config layer (parsing, validation, saving)
-  - [ ] CameraState struct updates
-  - [ ] CameraController methods
-  - [ ] UI widgets (sliders + dropdown)
-  - [ ] Integration with apply/save logic
+## Technical debt watchlist
+- Consolidate debounce logic into a reusable helper shared by widgets.
+- Extract SDK command wrappers to their own module for easier unit testing.
+- Cache SDK capability ranges instead of using hard-coded slider spans.
+- Improve CLI argument parsing (switch to `CLI11` or similar).
 
-## Planned Features
-
-### High Priority
-
-1. **Image Controls Completion**
-   - Add brightness/contrast/saturation sliders (0-255 range)
-   - Add white balance dropdown (Auto, Daylight, Fluorescent, etc.)
-   - Wire up to camera SDK methods
-   - Test with debounce/settling behavior
-
-2. **Error Handling Improvements**
-   - Show command failure details in UI
-   - Retry mechanism for failed commands
-   - Connection status indicator
-
-3. **State Verification**
-   - Verify camera state matches UI after settling period
-   - Show warning if state drift detected
-
-### Medium Priority
-
-4. **Additional Camera Controls**
-   - Sharpness (if available in SDK)
-   - Exposure mode selection
-   - Manual exposure/ISO controls
-   - Backlight compensation
-
-5. **Presets System**
-   - Save/load custom presets
-   - Quick-switch between presets
-   - Per-application presets (e.g., "Video Call", "Recording", "Presentation")
-
-6. **UI Enhancements**
-   - Keyboard shortcuts
-   - Reset to defaults button
-   - Live preview of settings (if possible via SDK)
-
-### Low Priority
-
-7. **Advanced Features**
-   - Gesture control (if SDK supports)
-   - Auto-framing sensitivity adjustment
-   - Multi-camera support
-   - Systemd service for auto-apply on boot
-
-8. **Developer Experience**
-   - Unit tests for Config class
-   - Integration tests for CameraController
-   - Continuous Integration setup
-   - Build instructions for different distros
-
-## Known Issues
-
-### Bugs
-
-- None currently reported
-
-### Limitations
-
-- Camera state updates every 2 seconds (SDK limitation)
-- No real-time preview in GUI
-- White balance "Fine" mode might not be available on all firmware versions
-
-## Technical Debt
-
-- Consider caching SDK ranges (brightness/contrast min/max) instead of hardcoding 0-255
-- Refactor widget creation in CameraSettingsWidget (getting long)
-- Add const correctness to Config methods
-- Consider moving debounce logic to a reusable base class
-
-## Future Considerations
-
-- Support for other OBSBOT cameras (Tiny 2, Tail Air)
-- D-Bus interface for desktop integration
-- KDE/GNOME control center integration
-- Web interface for remote control
-- Scriptable API (JSON-RPC or similar)
-
----
-
-Last Updated: 2025-10-15
+## How to help
+- Try the latest changes and report camera compatibility in GitHub issues.
+- Test virtual camera flows on your desktop environment and share findings.
+- Grab any of the `help wanted` issues on GitHub—most map directly to items above.

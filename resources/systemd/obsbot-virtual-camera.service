@@ -1,6 +1,6 @@
 [Unit]
 Description=OBSBOT Virtual Camera (v4l2loopback)
-Documentation=https://github.com/aaronsb/obsbot-camera-control
+Documentation=https://github.com/bloopybae/obsbot-control-linux
 DefaultDependencies=no
 After=systemd-modules-load.service
 Before=multi-user.target

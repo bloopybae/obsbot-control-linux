@@ -1,226 +1,70 @@
 # Contributing to OBSBOT Control
 
-## Adding New Camera Controls
+Thanks for helping push Linux support for OBSBOT hardware forward! This guide explains how the project is structured and how to add new features safely.
 
-Follow these steps to add a new camera control parameter:
+## Before you start
+- Read the architecture notes in `docs/adr/001-application-architecture.md`.
+- Build the project locally with `./build.sh install --confirm` and confirm both the GUI and CLI run.
+- Format code to match the surrounding C++ style (Qt signal/slot patterns, brace placement, etc.).
+- Every new behavior should have manual test notes or automated coverage where practical.
 
-### 1. Update Config Layer
-
-**File:** `src/common/Config.h`
-```cpp
-struct CameraSettings {
-    // ... existing fields ...
-    int yourNewControl;  // Add your field with comment
-};
+## Project layout (quick refresher)
+```
+src/
+  common/        // shared config/state types
+  gui/           // Qt widgets, controllers, main window
+  cli/           // one-shot + interactive command line tool
+sdk/             // bundled OBSBOT SDK binaries/headers
+resources/       // icons, desktop files, systemd units
 ```
 
-**File:** `src/common/Config.cpp`
+Key classes:
+- `Config` (`src/common/Config.*`): owns persisted settings and validation.
+- `CameraController` (`src/gui/CameraController.*`): wraps SDK commands with caching, debounce and error handling.
+- `CameraSettingsWidget`, `PTZControlWidget`, `TrackingControlWidget`: UI surfaces for specific control groups.
+- CLI entry point (`src/cli/meet2_test.cpp`): loads config, applies settings, or runs an interactive menu.
 
-a. Add to defaults:
-```cpp
-void Config::setDefaults() {
-    // ... existing defaults ...
-    m_settings.yourNewControl = defaultValue;
-}
-```
+## Adding a new camera control (example workflow)
 
-b. Add to required keys:
-```cpp
-std::vector<std::string> requiredKeys = {
-    // ... existing keys ...
-    "your_new_control"
-};
-```
+1. **Config layer**
+   - Append the new field to `Config::CameraSettings` in `src/common/Config.h`.
+   - Initialize defaults in `Config::setDefaults()` (`src/common/Config.cpp`).
+   - Extend the parser in `Config::load()` to read and validate the key.
+   - Include it in `Config::save()` output with comments to aid manual editing.
 
-c. Add parsing logic:
-```cpp
-} else if (key == "your_new_control") {
-    // Parse and validate the value
-    // Set m_settings.yourNewControl
-}
-```
+2. **Camera controller**
+   - Add the field to `CameraController::CameraState` in `src/gui/CameraController.h`.
+   - Implement a setter that wraps the SDK call in `CameraController.cpp`, using `executeCommand()` for consistent logging and retry behavior.
+   - Update `updateState()`, `applyConfigToCamera()`, and `applyCurrentStateToCamera()` so cached state stays in sync.
 
-d. Add to save():
-```cpp
-file << "# Your New Control Description\n";
-file << "your_new_control=" << m_settings.yourNewControl << "\n\n";
-```
+3. **GUI widgets**
+   - Choose the appropriate widget (`CameraSettingsWidget`, `PTZControlWidget`, etc.).
+   - Create the control, connect signals, and respect the debounce timer pattern (`m_commandTimer` + `m_userInitiated` flags).
+   - Populate initial values in `loadConfiguration()` (MainWindow) and push user changes into `CameraController`.
 
-### 2. Update CameraController
+4. **CLI support (optional but encouraged)**
+   - Expose the setting inside `applyConfigToCamera()` in `src/cli/meet2_test.cpp`.
+   - Update any interactive prompts if the feature should be togglable via CLI.
 
-**File:** `src/gui/CameraController.h`
+5. **Documentation**
+   - Update `README.md` and relevant docs to mention the new capability.
+   - Add troubleshooting notes if the control behaves differently across camera models.
 
-a. Add to CameraState:
-```cpp
-struct CameraState {
-    // ... existing fields ...
-    int yourNewControl;
-};
-```
+6. **Testing checklist**
+   - Build the project (`cmake --build build -j"$(nproc)"`).
+   - Exercise the new widget in the GUI; confirm state persists across reconnects.
+   - Validate config save/load with both default and custom values.
+   - Run the CLI in both one-shot and `--interactive` modes if modified.
 
-b. Add setter method:
-```cpp
-bool setYourNewControl(int value);
-```
+## Submitting changes
+- Keep commits focused; split refactors and feature work if possible.
+- Describe manual testing in your PR body (`Test Plan:` section).
+- Link to related issues or roadmap items.
+- Expect questions about camera coverage—if you only tested on a single model, say so.
 
-**File:** `src/gui/CameraController.cpp`
+## Issue/PR labels
+- `bug`, `enhancement`, `camera-support`, `docs`, `build`, `cli`, `gui` help triage incoming work.
+- If you’re unsure which label fits, leave it blank and a maintainer will adjust.
 
-a. Implement setter:
-```cpp
-bool CameraController::setYourNewControl(int value)
-{
-    if (!m_connected) return false;
-
-    return executeCommand("Set Your Control", [this, value]() {
-        return m_device->cameraSetYourControlR(value);
-    });
-}
-```
-
-b. Update `updateState()`:
-```cpp
-void CameraController::updateState() {
-    // ... existing code ...
-    m_currentState.yourNewControl = status.tiny.your_control;
-}
-```
-
-c. Update `applyConfigToCamera()` and `applyCurrentStateToCamera()`:
-```cpp
-setYourNewControl(settings.yourNewControl);
-```
-
-d. Update `saveCurrentStateToConfig()`:
-```cpp
-settings.yourNewControl = m_currentState.yourNewControl;
-```
-
-### 3. Add UI Widget
-
-**File:** `src/gui/CameraSettingsWidget.h`
-
-a. Add widget member:
-```cpp
-private:
-    QSlider *m_yourControlSlider;  // or QComboBox, QCheckBox, etc.
-```
-
-b. Add getter:
-```cpp
-public:
-    int getYourControl() const { return m_yourControlSlider->value(); }
-```
-
-c. Add setter (for config initialization):
-```cpp
-void setYourControl(int value) {
-    m_yourControlSlider->blockSignals(true);
-    m_yourControlSlider->setValue(value);
-    m_yourControlSlider->blockSignals(false);
-}
-```
-
-**File:** `src/gui/CameraSettingsWidget.cpp`
-
-a. Create widget in constructor:
-```cpp
-m_yourControlSlider = new QSlider(Qt::Horizontal, this);
-m_yourControlSlider->setRange(minValue, maxValue);
-connect(m_yourControlSlider, &QSlider::valueChanged,
-        this, &CameraSettingsWidget::onYourControlChanged);
-```
-
-b. Add slot:
-```cpp
-private slots:
-    void onYourControlChanged(int value);
-```
-
-c. Implement slot with debounce:
-```cpp
-void CameraSettingsWidget::onYourControlChanged(int value)
-{
-    m_userInitiated = true;
-    m_controller->setYourNewControl(value);
-    m_commandTimer->start(1000);
-}
-```
-
-d. Update from state:
-```cpp
-void CameraSettingsWidget::updateFromState(const CameraController::CameraState &state)
-{
-    // ... existing code ...
-    if (!m_userInitiated && !commandInFlight && !isSettling) {
-        if (m_yourControlSlider->value() != state.yourNewControl) {
-            m_yourControlSlider->blockSignals(true);
-            m_yourControlSlider->setValue(state.yourNewControl);
-            m_yourControlSlider->blockSignals(false);
-        }
-    }
-}
-```
-
-### 4. Update MainWindow Config Init
-
-**File:** `src/gui/MainWindow.cpp`
-
-In `loadConfiguration()`:
-```cpp
-m_settingsWidget->setYourControl(settings.yourNewControl);
-```
-
-In `getUIState()`:
-```cpp
-state.yourNewControl = m_settingsWidget->getYourControl();
-```
-
-### 5. Update CLI (Optional)
-
-**File:** `src/cli/camera_cli.cpp`
-
-Add to `applyConfigToCamera()`:
-```cpp
-cout << "  Setting Your Control: " << settings.yourNewControl << endl;
-ret = dev->cameraSetYourControlR(settings.yourNewControl);
-```
-
-### 6. Test
-
-1. Build: `cmake --build build -j$(nproc)`
-2. Run GUI: `./build/obsbot-gui`
-3. Test control works
-4. Test config save/load
-5. Test with invalid config values
-6. Test debounce behavior (rapid clicking)
-7. Test settling period (click during connection)
-
-## Architecture Guidelines
-
-- **Widgets**: UI only, no business logic
-- **Controller**: All SDK communication
-- **Optimistic UI**: Update immediately, validate later
-- **Debounce**: 1 second after user action
-- **Settling**: 2 seconds after connection/config apply
-- **Config**: All persistent state
-
-## Code Style
-
-- Use Qt naming conventions for Qt code
-- Use camelCase for methods
-- Use m_ prefix for member variables
-- Add comments for non-obvious logic
-- Keep methods small and focused
-
-## Testing
-
-- Test with both Breeze Light and Breeze Dark themes
-- Test connection loss/reconnection
-- Test rapid control changes
-- Test config validation edge cases
-
-## Documentation
-
-- Update ADR if architectural decisions change
-- Update ROADMAP.md when adding features
-- Add inline comments for complex logic
+## Code of conduct
+Be respectful. We all want better Linux camera tooling. Discrimination, harassment, or dismissive behavior isn’t tolerated.

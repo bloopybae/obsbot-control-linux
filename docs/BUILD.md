@@ -1,301 +1,115 @@
-# Building OBSBOT Control
+# Build & Install OBSBOT Control
 
-Complete build instructions for compiling and installing OBSBOT Control on Linux.
+Step-by-step guide for getting the GUI and CLI running on your Linux machine.
 
-## Table of Contents
-
-- [Quick Start](#quick-start)
-- [Dependencies](#dependencies)
-- [Build Script (Recommended)](#build-script-recommended)
-- [Manual Build](#manual-build)
-- [Installation](#installation)
-- [Uninstallation](#uninstallation)
-- [Troubleshooting](#troubleshooting)
-
-## Quick Start
-
-The fastest way to get started:
-
+## TL;DR (safe defaults)
 ```bash
-# Clone the repository
-git clone https://github.com/aaronsb/obsbot-camera-control.git
-cd obsbot-camera-control
-
-# Build and install with the automated script
+git clone https://github.com/bloopybae/obsbot-control-linux.git
+cd obsbot-control-linux
 ./build.sh install --confirm
 ```
 
-The build script automatically:
-- Checks all dependencies
-- Shows missing packages with install commands for your distro
-- Builds the application
-- Installs to `~/.local/bin`
-- Adds desktop launcher to your application menu
-- Optionally updates your PATH
+The installer checks dependencies, builds the project, installs binaries to `~/.local/bin`, drops a desktop launcher/icon, and keeps your camera available for other apps while you test.
 
-## Dependencies
+## Requirements
 
-### Required Build Dependencies
+### Toolchain
+- CMake **3.16+**
+- GCC **7+** or Clang **5+** (C++17)
+- Qt 6: `qt6-base`, `qt6-multimedia` (development headers/libraries)
+- `pkg-config` / `pkgconf`
 
-#### Arch Linux / Manjaro
+### Recommended extras
+- `lsof` (camera usage detection)
+- `v4l2loopback` + `v4l-utils` if you plan to use the virtual camera feature
+
+### Install commands
 ```bash
-sudo pacman -S base-devel cmake qt6-base qt6-multimedia pkgconf
+# Arch / Manjaro
+sudo pacman -S base-devel cmake qt6-base qt6-multimedia pkgconf lsof
+sudo pacman -S v4l2loopback-dkms v4l-utils    # optional virtual camera
+
+# Debian / Ubuntu
+sudo apt update
+sudo apt install build-essential cmake qt6-base-dev qt6-multimedia-dev pkg-config lsof
+sudo apt install v4l2loopback-dkms v4l2loopback-utils v4l-utils   # optional
+
+# Fedora / RHEL
+sudo dnf groupinstall "Development Tools"
+sudo dnf install cmake qt6-qtbase-devel qt6-qtmultimedia-devel pkgconfig lsof
+sudo dnf install v4l2loopback v4l-utils   # optional
 ```
 
-#### Debian / Ubuntu
+## Using the build script
+`build.sh` is the fastest and safest way to stay current.
+
 ```bash
-sudo apt install build-essential cmake qt6-base-dev qt6-multimedia-dev pkg-config
+./build.sh build --confirm        # compile only
+./build.sh install --confirm      # build + install (default path: ~/.local/bin)
+./build.sh clean --confirm        # remove build artifacts
+./build.sh help                   # list every command/flag
 ```
 
-#### Fedora / RHEL / CentOS
+Features:
+- Detects missing dependencies and prints distro-friendly install commands.
+- Keeps a dry-run mode (`./build.sh install`) so you see every action before confirming.
+- Installs the GUI (`obsbot-gui`) and optional CLI (`obsbot-cli`).
+- Adds `obsbot-control.desktop` and icon assets so the launcher shows up in your menu.
+- Offers to extend your PATH if `~/.local/bin` is missing.
+
+### Custom install location
+Set XDG paths before running the installer:
 ```bash
-sudo dnf groupinstall 'Development Tools'
-sudo dnf install cmake qt6-qtbase-devel qt6-qtmultimedia-devel pkgconfig
-```
-
-### Optional Runtime Dependencies
-
-#### Camera Usage Detection (Recommended)
-```bash
-# Arch
-sudo pacman -S lsof
-
-# Debian/Ubuntu
-sudo apt install lsof
-
-# Fedora
-sudo dnf install lsof
-```
-
-This enables the application to detect when other programs are using the camera.
-
-#### Virtual Camera Output (Optional)
-The project ships a systemd unit and modprobe configuration, but they are not enabled automatically. Enable them only if you want a persistent virtual camera device.
-
-Install the kernel module for your distribution:
-```bash
-# Arch
-sudo pacman -S v4l2loopback-dkms v4l-utils
-
-# Debian/Ubuntu
-sudo apt install v4l2loopback-dkms v4l2loopback-utils v4l-utils
-
-# Fedora
-sudo dnf install v4l2loopback v4l-utils
-```
-
-Load the module when you want to expose the virtual camera:
-```bash
-# using the provided systemd unit (installs the module options from /usr/lib/modprobe.d/)
-sudo systemctl enable --now obsbot-virtual-camera.service
-
-# or load it manually
-sudo modprobe v4l2loopback video_nr=42 card_label="OBSBOT Virtual Camera" exclusive_caps=1
-```
-
-Adjust `video_nr` or `card_label` as needed. Ensure the device path matches the value configured inside the application (default: `/dev/video42`).
-
-### Minimum Versions
-- **CMake**: 3.16 or later
-- **Qt6**: 6.2 or later
-- **Compiler**: GCC 7+ or Clang 5+ (C++17 support required)
-
-## Build Script (Recommended)
-
-The `build.sh` script provides an easy, safe way to build and install the application.
-
-### Features
-
-- **Dependency Checking**: Automatically detects missing dependencies
-- **Multi-Distribution Support**: Provides correct install commands for Arch, Debian, Fedora
-- **Dry-Run Mode**: Shows what will happen without making changes
-- **Safe Installation**: Requires explicit `--confirm` flag
-- **Smart PATH Detection**: Checks and optionally updates shell configuration
-- **Desktop Integration**: Installs application menu launcher and icon
-
-### Available Commands
-
-#### Build Only
-
-```bash
-# See what will happen (dry run)
-./build.sh build
-
-# Actually build the project
-./build.sh build --confirm
-```
-
-Binaries will be in `build/obsbot-gui` and `build/obsbot-cli`
-
-#### Build and Install
-
-```bash
-# See what will be installed (dry run)
-./build.sh install
-
-# Build and install
+export XDG_BIN_HOME="$HOME/bin"
+export XDG_DATA_HOME="$HOME/.local/share"
 ./build.sh install --confirm
 ```
 
-During installation, you'll be prompted:
-1. Whether to install the CLI tool (optional)
-2. Whether to add `~/.local/bin` to your PATH (if not already present)
-
-#### Clean Build Directory
-
+## Manual build (if you enjoy toggling switches yourself)
 ```bash
-# Remove build artifacts
-./build.sh clean --confirm
-```
-
-#### Get Help
-
-```bash
-./build.sh help
-```
-
-### What Gets Installed
-
-- **Binaries**: `~/.local/bin/obsbot-gui` (and optionally `obsbot-cli`)
-- **Desktop Launcher**: `~/.local/share/applications/obsbot-control.desktop`
-- **Icon**: `~/.local/share/icons/hicolor/scalable/apps/obsbot-control.svg`
-
-After installation, the application will appear in your system's application menu.
-
-## Manual Build
-
-If you prefer to build manually without the script:
-
-### Step 1: Install Dependencies
-
-Install the dependencies for your distribution (see [Dependencies](#dependencies) section).
-
-### Step 2: Create Build Directory
-
-```bash
-mkdir build
-cd build
-```
-
-### Step 3: Configure with CMake
-
-```bash
+git clone https://github.com/bloopybae/obsbot-control-linux.git
+cd obsbot-control-linux
+mkdir build && cd build
 cmake ..
+make -j"$(nproc)"
 ```
 
-CMake will check for required dependencies and configure the build.
-
-### Step 4: Compile
-
+Run straight from `build/`:
 ```bash
-# Use all available CPU cores
-make -j$(nproc)
-```
-
-### Step 5: Run
-
-```bash
-# Run directly from build directory
 ./obsbot-gui
+./obsbot-cli --help
 ```
 
-Or install manually:
-
+Manual install steps mirror what the script does:
 ```bash
-# Copy to local bin
-cp obsbot-gui ~/.local/bin/
-cp obsbot-cli ~/.local/bin/
-chmod +x ~/.local/bin/obsbot-meet2-{gui,cli}
-
-# Install desktop launcher
-mkdir -p ~/.local/share/applications
-cp ../obsbot-control.desktop ~/.local/share/applications/
-
-# Install icon
-mkdir -p ~/.local/share/icons/hicolor/scalable/apps
-cp ../resources/icons/camera.svg ~/.local/share/icons/hicolor/scalable/apps/obsbot-control.svg
-
-# Update desktop database
+install -Dm755 obsbot-gui ~/.local/bin/obsbot-gui
+install -Dm755 obsbot-cli ~/.local/bin/obsbot-cli
+install -Dm644 ../obsbot-control.desktop ~/.local/share/applications/obsbot-control.desktop
+install -Dm644 ../resources/icons/camera.svg \
+  ~/.local/share/icons/hicolor/scalable/apps/obsbot-control.svg
 update-desktop-database ~/.local/share/applications
 ```
 
-## Installation
-
-### Using Build Script
-
-The recommended installation method:
+## Virtual camera setup
+The repo ships a systemd unit (`resources/systemd/obsbot-virtual-camera.service`) and modprobe config to keep the virtual camera consistent.
 
 ```bash
-./build.sh install --confirm
+sudo systemctl enable --now obsbot-virtual-camera.service
+# or load it manually when you need it
+sudo modprobe v4l2loopback video_nr=42 card_label="OBSBOT Virtual Camera" exclusive_caps=1
 ```
 
-This handles everything automatically, including:
-- Building the application
-- Installing binaries
-- Installing desktop launcher
-- Checking PATH configuration
-- Offering to update shell configuration files
+Adjust `video_nr`/`card_label` to match your environment and the device path configured in the app.
 
-### Install Directory
-
-By default, binaries install to `~/.local/bin` (XDG-compliant).
-
-You can override this by setting the `XDG_BIN_HOME` environment variable:
-
+## Uninstall
 ```bash
-export XDG_BIN_HOME="$HOME/bin"
-./build.sh install --confirm
-```
-
-### Adding to PATH
-
-If `~/.local/bin` is not in your PATH, the installer will offer to add it.
-
-To add manually:
-
-**Bash** (~/.bashrc):
-```bash
-export PATH="$HOME/.local/bin:$PATH"
-```
-
-**Zsh** (~/.zshrc):
-```bash
-export PATH="$HOME/.local/bin:$PATH"
-```
-
-After adding, restart your shell or run:
-```bash
-source ~/.bashrc  # or ~/.zshrc
-```
-
-## Uninstallation
-
-### Using Uninstall Script
-
-```bash
-# See what will be removed (dry run)
-./uninstall.sh
-
-# Actually uninstall
 ./uninstall.sh --confirm
 ```
+Removes binaries, desktop launcher, icon, and configuration (unless the config directory contains untracked files). PATH edits you made by hand stay untouched.
 
-The uninstall script removes:
-- Application binaries
-- Desktop launcher
-- Application icon
-- Configuration file
-- Configuration directory (if empty)
-
-**What it does NOT remove:**
-- Shell configuration changes (PATH additions)
-- The config directory if it contains unexpected files
-
-### Manual Uninstallation
-
+Manual cleanup:
 ```bash
-rm -f ~/.local/bin/obsbot-gui
-rm -f ~/.local/bin/obsbot-cli
+rm -f ~/.local/bin/obsbot-{gui,cli}
 rm -f ~/.local/share/applications/obsbot-control.desktop
 rm -f ~/.local/share/icons/hicolor/scalable/apps/obsbot-control.svg
 rm -rf ~/.config/obsbot-control
@@ -304,135 +118,43 @@ update-desktop-database ~/.local/share/applications
 
 ## Troubleshooting
 
-### Build Errors
-
-#### CMake can't find Qt6
-
-**Problem**: CMake reports "Could not find Qt6"
-
-**Solution**:
+### “Could not find Qt6”
+Make sure the development headers are installed (`qt6-base-dev` / `qt6-qtbase-devel`). If you installed Qt6 from a custom location, export `Qt6_DIR` before running CMake:
 ```bash
-# Arch
-sudo pacman -S qt6-base qt6-multimedia
-
-# Debian/Ubuntu
-sudo apt install qt6-base-dev qt6-multimedia-dev
-
-# Fedora
-sudo dnf install qt6-qtbase-devel qt6-qtmultimedia-devel
+cmake -DQt6_DIR=/opt/Qt/6.6.0/gcc_64/lib/cmake/Qt6 ..
 ```
 
-#### Linking error: "cannot find -ldev"
+### Linker can’t find `-ldev`
+The proprietary OBSBOT SDK ships inside `sdk/lib/`. Ensure those files exist after cloning. If you used shallow clones or a mirror, pull again without filtering.
 
-**Problem**: Linker can't find the OBSBOT SDK library
-
-**Solution**: This means the SDK libraries weren't included in your git clone. They should be in `sdk/lib/`. If missing:
-
-1. Check if `sdk/lib/libdev.so*` files exist
-2. If not, the repository may have been cloned before the SDK was added
-3. Pull the latest changes: `git pull`
-
-#### Compiler version too old
-
-**Problem**: Errors about C++17 features not being supported
-
-**Solution**: Update your compiler:
+### Binary won’t start
 ```bash
-# Check current version
-g++ --version
-
-# Should be GCC 7+ or Clang 5+
-# Update if needed through your distribution's package manager
+ldd ~/.local/bin/obsbot-gui          # check for missing Qt libraries
+~/.local/bin/obsbot-gui 2>&1 | tee gui.log
 ```
+Look for Qt plugin errors or permission issues; ensure the binary is executable.
 
-### Runtime Issues
-
-#### Application doesn't start
-
-1. **Check if installed correctly**:
-   ```bash
-   which obsbot-gui
-   ls -l ~/.local/bin/obsbot-gui
-   ```
-
-2. **Try running from build directory**:
-   ```bash
-   cd build
-   ./obsbot-gui
-   ```
-
-3. **Check for error messages**:
-   ```bash
-   ./obsbot-gui 2>&1 | tee error.log
-   ```
-
-#### Desktop launcher doesn't appear
-
-1. **Update desktop database**:
-   ```bash
-   update-desktop-database ~/.local/share/applications
-   ```
-
-2. **Check desktop environment**:
-   - Some minimal window managers don't support .desktop files
-   - Try running from terminal: `obsbot-gui`
-
-3. **Verify installation**:
-   ```bash
-   ls -l ~/.local/share/applications/obsbot-control.desktop
-   ```
-
-#### Permission denied errors
-
-Ensure the binary is executable:
+### Desktop launcher missing
+Refresh your desktop cache:
 ```bash
-chmod +x ~/.local/bin/obsbot-gui
+update-desktop-database ~/.local/share/applications
+gtk-update-icon-cache ~/.local/share/icons/hicolor
 ```
+Some lightweight WMs ignore `.desktop` files; launch `obsbot-gui` manually in that case.
 
-### Build Script Issues
+### Colors show escape codes in the script
+You’re likely on an older checkout. Update the repo (`git pull`) and rerun the script.
 
-#### Colors showing as escape codes
-
-This shouldn't happen anymore (fixed in recent versions), but if you see literal `\033[0;32m` codes:
-
+### Need debug symbols
 ```bash
-# Update to latest version
-git pull
-```
-
-#### Dependency checker shows wrong install commands
-
-The script detects your distribution automatically. If detection fails:
-
-1. Check `/etc/os-release`:
-   ```bash
-   cat /etc/os-release
-   ```
-
-2. Report the issue with your distribution details
-
-## Development Builds
-
-### Debug Build
-
-```bash
-mkdir build-debug
-cd build-debug
+mkdir build-debug && cd build-debug
 cmake -DCMAKE_BUILD_TYPE=Debug ..
-make -j$(nproc)
+cmake --build . -j"$(nproc)"
 ```
 
-### Release Build with Debug Symbols
+## Getting help
+- File issues: <https://github.com/bloopybae/obsbot-control-linux/issues>
+- Architecture docs: `docs/adr/001-application-architecture.md`
+- Usage overview: `../README.md`
 
-```bash
-mkdir build-release
-cd build-release
-cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
-make -j$(nproc)
-```
-
-## Getting Help
-
-- **Build Issues**: Check [GitHub Issues](https://github.com/aaronsb/obsbot-camera-control/issues)
-- **Usage Questions**: See main [README](../README.md)
-- **Report Bugs**: [Open an Issue](https://github.com/aaronsb/obsbot-camera-control/issues/new)
+If you’re stuck, include distro details (`/etc/os-release`), the build log, and `cmake --version` in your issue to speed up turnaround.

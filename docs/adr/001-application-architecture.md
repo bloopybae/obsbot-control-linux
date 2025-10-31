@@ -64,7 +64,7 @@ CameraState m_cachedState;  // Returned during settling
 
 ### 3. XDG-Compliant Configuration System
 
-**Location:** `$XDG_CONFIG_HOME/obsbot-meet2-control/settings.conf`
+**Location:** `$XDG_CONFIG_HOME/obsbot-control/settings.conf`
 **Format:** Simple `key=value` with `#` comments
 
 **Features:**
