@@ -51,10 +51,12 @@ if [[ -z "${QMAKE}" ]]; then
     exit 1
 fi
 
+export PATH="$(dirname "${QMAKE}"):${PATH}"
+
 pushd "${BUILD_DIR}" >/dev/null
 rm -f obsbot-control-linux-*.AppImage
-"${LINUXDEPLOY_QT}" --appdir "${APPDIR}" >/dev/null
-"${LINUXDEPLOY}" --appdir "${APPDIR}" --desktop-file "${DESKTOP_FILE}" --icon-file "${ICON_FILE}" --output appimage >/dev/null
+"${LINUXDEPLOY_QT}" --verbosity 2 --appdir "${APPDIR}"
+"${LINUXDEPLOY}" --appdir "${APPDIR}" --desktop-file "${DESKTOP_FILE}" --icon-file "${ICON_FILE}" --output appimage
 
 APPIMAGE_SOURCE=$(ls -1t *.AppImage 2>/dev/null | head -n1)
 if [[ -z "${APPIMAGE_SOURCE}" ]]; then
