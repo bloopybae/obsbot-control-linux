@@ -34,12 +34,12 @@ LINUXDEPLOY="${BUILD_DIR}/linuxdeploy-x86_64.AppImage"
 LINUXDEPLOY_QT="${BUILD_DIR}/linuxdeploy-plugin-qt-x86_64.AppImage"
 
 if [[ ! -f "${LINUXDEPLOY}" ]]; then
-    wget -q "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage" -O "${LINUXDEPLOY}"
+    curl -L "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage" -o "${LINUXDEPLOY}"
     chmod +x "${LINUXDEPLOY}"
 fi
 
 if [[ ! -f "${LINUXDEPLOY_QT}" ]]; then
-    wget -q "https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage" -O "${LINUXDEPLOY_QT}"
+    curl -L "https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage" -o "${LINUXDEPLOY_QT}"
     chmod +x "${LINUXDEPLOY_QT}"
 fi
 
