@@ -52,7 +52,7 @@ if [[ -z "${QMAKE}" ]]; then
 fi
 
 pushd "${BUILD_DIR}" >/dev/null
-rm -f ./*.AppImage
+rm -f obsbot-control-linux-*.AppImage
 "${LINUXDEPLOY_QT}" --appdir "${APPDIR}" >/dev/null
 "${LINUXDEPLOY}" --appdir "${APPDIR}" --desktop-file "${DESKTOP_FILE}" --icon-file "${ICON_FILE}" --output appimage >/dev/null
 
