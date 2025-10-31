@@ -11,7 +11,7 @@ Ensure you have the runtime dependencies that the AppImage bundler needs:
 sudo pacman -S jxrlib
 
 # Debian / Ubuntu
-sudo apt-get install libjxr-dev qt6-qtsvg-dev
+sudo apt-get install libjxr-dev libqt6svg6-dev
 ```
 
 You also need a Release build in `build/`:
