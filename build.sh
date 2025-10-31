@@ -27,6 +27,7 @@ INSTALL_DIR="${XDG_BIN_HOME:-$HOME/.local/bin}"
 DESKTOP_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
 ICON_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/icons/hicolor/scalable/apps"
 BUILD_DIR="build"
+BIN_DIR="bin"
 PROJECT_NAME="obsbot"
 
 # Print colored message
@@ -51,7 +52,7 @@ show_usage() {
     echo -e "    - Creates build/ directory if it doesn't exist"
     echo -e "    - Runs CMake to configure the project"
     echo -e "    - Compiles both GUI and CLI applications"
-    echo -e "    - Binaries will be in build/obsbot-gui and build/obsbot-cli"
+    echo -e "    - Binaries will be in bin/obsbot-gui and bin/obsbot-cli"
     echo -e ""
     echo -e "    ${YELLOW}Example:${NC} ./build.sh build --confirm"
     echo -e ""
@@ -380,6 +381,19 @@ do_build() {
 
     cd "$BUILD_DIR"
 
+    if [ -f "CMakeCache.txt" ]; then
+        CACHE_HOME=$(grep -m1 '^CMAKE_HOME_DIRECTORY:INTERNAL=' CMakeCache.txt | cut -d'=' -f2-)
+        SOURCE_HOME=$(cd .. && pwd)
+        if [ -n "$CACHE_HOME" ] && [ "$CACHE_HOME" != "$SOURCE_HOME" ]; then
+            print_msg "$YELLOW" "Detected stale CMake cache from: $CACHE_HOME"
+            print_msg "$BLUE" "Cleaning $BUILD_DIR/ to regenerate build files..."
+            cd ..
+            rm -rf "$BUILD_DIR"
+            mkdir -p "$BUILD_DIR"
+            cd "$BUILD_DIR"
+        fi
+    fi
+
     print_msg "$BLUE" "Running CMake..."
     cmake ..
 
@@ -390,8 +404,8 @@ do_build() {
 
     print_msg "$GREEN" "✓ Build complete!"
     print_msg "$NC" "\nBinaries are in:"
-    print_msg "$BLUE" "  - $BUILD_DIR/obsbot-gui (GUI application)"
-    print_msg "$BLUE" "  - $BUILD_DIR/obsbot-cli (CLI tool)"
+    print_msg "$BLUE" "  - $BIN_DIR/obsbot-gui (GUI application)"
+    print_msg "$BLUE" "  - $BIN_DIR/obsbot-cli (CLI tool)"
 }
 
 # Install the project
@@ -410,7 +424,7 @@ do_install() {
 
     # Copy GUI binary (always installed)
     print_msg "$BLUE" "Installing GUI application..."
-    cp "$BUILD_DIR/obsbot-gui" "$INSTALL_DIR/"
+    cp "$BIN_DIR/obsbot-gui" "$INSTALL_DIR/"
     chmod +x "$INSTALL_DIR/obsbot-gui"
 
     local installed_apps="  - obsbot-gui"
@@ -422,7 +436,7 @@ do_install() {
 
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         print_msg "$BLUE" "Installing CLI tool..."
-        cp "$BUILD_DIR/obsbot-cli" "$INSTALL_DIR/"
+        cp "$BIN_DIR/obsbot-cli" "$INSTALL_DIR/"
         chmod +x "$INSTALL_DIR/obsbot-cli"
         installed_apps="$installed_apps\n  - obsbot-cli"
     else
@@ -460,6 +474,10 @@ do_install() {
         print_msg "$NC" "You can run the applications from anywhere:"
         print_msg "$BLUE" "  obsbot-gui"
     fi
+
+    print_msg "$BLUE" "\n==> Virtual camera support is available but not enabled"
+    print_msg "$BLUE" "==> To enable: sudo systemctl enable --now obsbot-virtual-camera.service"
+    print_msg "$BLUE" "==> Or load manually: sudo modprobe v4l2loopback video_nr=42 card_label=\"OBSBOT Virtual Camera\" exclusive_caps=1"
 }
 
 # Clean build directory

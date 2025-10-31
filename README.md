@@ -2,16 +2,17 @@
 
 A native Qt6 application for controlling OBSBOT cameras on Linux. Provides full camera control with an intuitive GUI while allowing simultaneous use with streaming/conferencing software.
 
-> **Acknowledgement**
-> This project started life as a fork of [aaronsb/obsbot-controls-qt-linux](https://github.com/aaronsb/obsbot-controls-qt-linux). Huge thanks to Aaron Bockelie and contributors for the original groundwork. The fork has since diverged and is now maintained here with a redesigned UI, improved preview flow, and ongoing updates.
+**Primary testing**: OBSBOT Meet 2
+**Also works with**: OBSBOT Tiny 4K (partial feature support - see [Compatibility](#compatibility))
 
-**Primary testing**: OBSBOT Tiny 2 Lite 4K (Fully supported, including AI tracking features)
 ## Screenshots
 
 <p align="center">
-  <img src="docs/media/Screenshot.png" alt="Main Application Interface" width="600"/>
+  <img src="docs/media/Screenshot_20251016_084333.png" alt="Main Application Interface" width="300"/>
+  <img src="docs/media/Screenshot_20251016_084456.png" alt="Camera Preview with Face Tracking" width="600"/>
 </p>
 
+*Left: Main control interface with PTZ controls, auto-framing, and advanced settings. Right: Live preview showing face tracking in action.*
 
 ## Features
 
@@ -28,13 +29,8 @@ A native Qt6 application for controlling OBSBOT cameras on Linux. Provides full 
 - **Camera Preview** - Real-time video preview with automatic aspect ratio detection
 - **Usage Detection** - Warns when camera is in use by other applications (Chrome, OBS, Zoom)
 - **Resource Management** - Automatically releases camera when not needed
-- **Detachable Window** - Pop-out preview with seamless reattachment and auto-resizing
-
-### Virtual Camera Output
-- **Loopback Device** - Mirror the live preview into a v4l2loopback virtual camera (default `/dev/video42`)
-- **One Camera, Many Apps** - Use OBSBOT preview inside OBS, Zoom, etc. while controlling settings here
-- **In-App Controls** - Toggle output and select the device path directly from the GUI
-- **Graceful Failure Handling** - Instant feedback if the virtual device is missing or unreachable
+- **Intelligent Layout** - Window expands only when preview successfully opens
+- **GPU Filters** - Apply GLSL-driven color filters with adjustable intensity for both preview and virtual camera output
 
 ### System Integration
 - **System Tray** - Minimize to tray, click to restore
@@ -52,19 +48,38 @@ A native Qt6 application for controlling OBSBOT cameras on Linux. Provides full 
 
 OBSBOT cameras have excellent Linux UVC support, but lack native control software. This application:
 
-1. **Simultaneous Use** - Control camera settings while OBS streams video
+1. **Simultaneous Use** - Control camera settings while OBS/Chrome streams video
 2. **Resource Friendly** - Releases camera when minimized/hidden
 3. **Native Performance** - Qt6 application, not Electron
 4. **Standard Compliance** - Uses XDG config directories, system tray
 
-### OBSBOT Tiny 2 Lite 4K ✅
+## Compatibility
 
+This application was developed and tested primarily with the **OBSBOT Meet 2**, but has been reported to work with other OBSBOT models with varying feature support.
+
+### OBSBOT Meet 2 ✅
 - **Fully tested** - All features supported
+- PTZ controls, Auto-Framing, HDR, Face AE/Focus, all image controls
+
+### OBSBOT Tiny 4K ⚠️
+**What works:**
+- ✅ PTZ controls (Pan, Tilt, Zoom)
+- ✅ HDR
+- ✅ Manual image controls (Brightness, Contrast, Saturation)
+- ✅ White Balance
+
+**What doesn't work:**
+- ❌ Auto-Framing (can be enabled via camera gestures, but not from app)
+- ❌ Face-based Auto Exposure
+- ❌ Face-based Auto Focus (works via Cameractrl though)
+- ❌ Auto image controls
+
+*Tested and reported by: [samdark](https://github.com/aaronsb/obsbot-camera-control/issues/7)*
 
 ### Other Models
 Other OBSBOT cameras may work with varying degrees of functionality. The SDK supports multiple product types (Tiny, Tiny 2, Tail Air, Me, etc.), but testing is needed.
 
-**Have another model?** Please [open an issue](https://github.com/bloopybae/obsbot-control-linux/issues) to report compatibility!
+**Have another model?** Please [open an issue](https://github.com/aaronsb/obsbot-camera-control/issues) to report compatibility!
 
 ## Requirements
 
@@ -83,20 +98,19 @@ Other OBSBOT cameras may work with varying degrees of functionality. The SDK sup
 - Qt6 libraries
 - V4L2 (Video4Linux2) support
 - `lsof` for camera usage detection (optional but recommended)
-- `v4l2loopback` kernel module for virtual camera output (optional)
 
 ## Quick Start
 
 ### One-Line Install
 
-For the adventurous, a single command that clones the repo to `~/src/obsbot-control-linux` and builds/installs:
+For the adventurous, a single command that clones the repo to `~/src/obsbot-camera-control` and builds/installs:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/bloopybae/obsbot-control-linux/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/aaronsb/obsbot-camera-control/main/install.sh | bash
 ```
 
 ⚠️ **What this does:**
-- Clones repository to `~/src/obsbot-control-linux`
+- Clones repository to `~/src/obsbot-camera-control`
 - Checks dependencies (shows what to install if missing)
 - Builds and installs the application
 - Adds desktop launcher to your app menu
@@ -107,8 +121,8 @@ If you prefer to review the code first (recommended):
 
 ```bash
 # Clone and build
-git clone https://github.com/bloopybae/obsbot-control-linux.git
-cd obsbot-controls-qt-linux
+git clone https://github.com/aaronsb/obsbot-camera-control.git
+cd obsbot-camera-control
 ./build.sh install --confirm
 ```
 
@@ -142,6 +156,23 @@ The build script automatically:
 - Click **"Show Camera Preview"** to enable live preview
 - If another app is using the camera, you'll see a warning with the process name
 - Close the blocking application and try again
+- Preview automatically disabled when window is hidden/minimized
+- Use the **Filter** controls above the preview to apply GPU shaders (None, Grayscale, Sepia, Invert, Warm, Cool) and tune their intensity. Changes appear instantly in the preview and in the virtual camera stream.
+
+### Virtual Camera
+- Packages ship the systemd unit and modprobe configuration needed for a virtual camera, but they are **not** enabled automatically.
+- When you want the feature, either enable the service or load the module manually:
+  ```bash
+  sudo systemctl enable --now obsbot-virtual-camera.service
+  # or
+  sudo modprobe v4l2loopback video_nr=42 card_label="OBSBOT Virtual Camera" exclusive_caps=1
+  ```
+- The app shows whether the virtual camera device exists and gives setup guidance directly in the UI.
+- Once the module is active, toggle **Virtual Camera → Enable virtual camera output** inside the app to feed OBS/Zoom/Meet.
+
+### Model-Specific Extras
+- OBSBOT Tiny 2 family cameras expose additional controls (voice command toggles, LED brightness, microphone pickup distance) through the SDK.
+- The desktop app keeps these switches hidden so other models don’t surface unusable options. Advanced users can experiment via the CLI/SDK if needed.
 
 ### System Tray
 - Click **X** button to minimize to tray (doesn't quit)
@@ -149,21 +180,44 @@ The build script automatically:
 - Right-click tray icon for menu
 - Enable **"Start minimized to tray"** checkbox for startup behavior
 
-### Virtual Camera
-1. Install the v4l2loopback kernel module and utilities (see [Virtual Camera Setup](#virtual-camera-setup-linux)).
-2. Load the module, e.g.:
-   ```bash
-   sudo modprobe v4l2loopback video_nr=42 card_label="OBSBOT Virtual Camera" exclusive_caps=1
-   ```
-3. Launch OBSBOT Control and enable the **"Virtual Camera"** option in the sidebar.
-4. Leave the live preview running. The frames are mirrored to the chosen loopback device so other applications can select it.
-5. Change the device path if you picked a different `video_nr` when loading the module.
+### Workflow Example
+Perfect for streaming/conferencing:
 
+1. Start app (optionally minimized to tray)
+2. Open OBS and select your OBSBOT camera as video source
+3. Click tray icon to show control window
+4. Adjust zoom, framing, brightness during stream
+5. Hide window to tray when not needed
+6. Camera remains available to OBS the entire time
 
 ## Configuration
 
 Settings are stored in: `~/.config/obsbot-control/settings.conf`
 
+### Configuration Format
+```ini
+# Camera Settings
+face_tracking=enabled
+hdr=disabled
+fov=wide
+face_ae=enabled
+face_focus=enabled
+zoom=1.0
+pan=0.0
+tilt=0.0
+
+# Image Controls
+brightness_auto=enabled
+brightness=128
+contrast_auto=enabled
+contrast=128
+saturation_auto=enabled
+saturation=128
+white_balance=auto
+
+# Application Settings
+start_minimized=disabled
+```
 
 ### Manual Editing
 - Boolean values: `enabled`/`disabled`, `true`/`false`, `yes`/`no`, `1`/`0`
@@ -171,37 +225,6 @@ Settings are stored in: `~/.config/obsbot-control/settings.conf`
 - Zoom: `1.0` to `2.0`
 - Pan/Tilt: `-1.0` to `1.0` (0 is center)
 - Brightness/Contrast/Saturation: `0` to `255`
-- Virtual camera: `virtual_camera_enabled=enabled|disabled`, `virtual_camera_device=/dev/video42`
-
-## Virtual Camera Setup (Linux)
-
-### Install the Kernel Module
-
-#### Arch Linux / Manjaro
-```bash
-sudo pacman -S v4l2loopback-dkms v4l-utils
-```
-
-Ensure the matching kernel headers are installed (e.g. `linux-headers`).
-
-### Load the Loopback Device
-
-```bash
-sudo modprobe v4l2loopback video_nr=42 card_label="OBSBOT Virtual Camera" exclusive_caps=1
-```
-
-- `video_nr=42` creates `/dev/video42` (match the default device path in the app).
-- `exclusive_caps=1` enables compatibility with apps that expect camera controls.
-
-To make this persistent, add the options to `/etc/modprobe.d/v4l2loopback.conf` and enable the module in `/etc/modules-load.d/`.
-
-### Verify
-
-```bash
-v4l2-ctl --list-devices
-```
-
-You should see `OBSBOT Virtual Camera` listed. Select this camera in your conferencing or streaming software while the OBSBOT Control preview is active.
 
 ## Technical Details
 
@@ -260,10 +283,20 @@ When window is shown/restored:
 - Check Qt6 platform plugin: `export QT_QPA_PLATFORMTHEME=qt6ct`
 - Some minimal window managers lack system tray
 
+## Command Line Interface
+
+A CLI tool is also included for automation/scripting:
+
+```bash
+./obsbot-cli
+```
+
+See CLI help for available commands.
+
 ## Project Structure
 
 ```
-obsbot-controls-qt-linux/
+obsbot-camera-control/
 ├── src/
 │   ├── gui/           # Qt6 GUI application
 │   ├── cli/           # Command-line interface
@@ -275,10 +308,16 @@ obsbot-controls-qt-linux/
 
 ## Contributing
 
+This is a personal project but contributions are welcome:
 - Bug reports and feature requests: Open an issue
 - Pull requests: Please discuss major changes first
 - Code style: Follow existing Qt/C++ conventions
 
+## Credits
+
+- OBSBOT for creating excellent Linux-compatible cameras and providing the SDK
+- Qt Project for the excellent framework
+- Linux community for V4L2 support
 
 ## License
 
@@ -299,3 +338,7 @@ This project extends that foundation into a full-featured graphical application,
 no warranty about compatibility or support from OBSBOT.
 
 ---
+
+**Made with ❤️ for the Linux community**
+
+*Because Linux users deserve native camera control too.*
