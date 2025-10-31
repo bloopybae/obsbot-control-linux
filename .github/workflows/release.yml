@@ -17,7 +17,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential cmake qt6-base-dev qt6-base-dev-tools \
             qt6-multimedia-dev libqt6svg6-dev libjxr-dev libgl1-mesa-dev libpulse-dev patchelf wget \
-            gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-qt6 gstreamer1.0-libav gstreamer1.0-tools
+            gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-libav \
+            gstreamer1.0-gl gstreamer1.0-tools
 
       - name: Configure
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
