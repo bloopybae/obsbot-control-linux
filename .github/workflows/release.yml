@@ -16,7 +16,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential cmake qt6-base-dev qt6-base-dev-tools \
-            qt6-multimedia-dev qt6-multimedia-dev-tools libgl1-mesa-dev libpulse-dev patchelf wget
+            qt6-multimedia-dev libgl1-mesa-dev libpulse-dev patchelf wget
 
       - name: Configure
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
