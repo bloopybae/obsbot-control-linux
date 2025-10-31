@@ -19,9 +19,10 @@ Aaron’s original project proved the concept. This fork pushes further:
 - Consistent UI/CLI architecture, modernized docs, and better defaults for GPU filters and virtual camera workflows.
 
 ## Supported Cameras
+- **OBSBOT Tiny 2 Family**: Fully verified.
 - **OBSBOT Meet 2**: Fully verified.
 - **OBSBOT Tiny 4K**: PTZ, HDR, manual image controls, white balance confirmed. Auto-framing and face AE/focus still firmware-limited.
-- **Other models** (Tiny 2, Tail Air, Me, etc.): SDK support exists but needs testing. [Open an issue](https://github.com/bloopybae/obsbot-control-linux/issues/new) with your findings.
+- **Other models** (Tail Air, Me, etc.): SDK support exists but needs testing. [Open an issue](https://github.com/bloopybae/obsbot-control-linux/issues/new) with your findings.
 
 ## Installation
 Make sure you have Qt 6 (Core/Widgets/Multimedia), CMake ≥ 3.16, a C++17 compiler, and `lsof` if you want camera-usage detection.
